@@ -15,20 +15,22 @@
     <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <!-- تنظیمات مخصوص اندروید -->
-    <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+    <!-- 🔴 این خط برای پشتیبانی از اندروید 5 (API 21) به بالا تنظیم شده است -->
+    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+    
+    <!-- تنظیمات ساخت فایل APK -->
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
 
-  <!-- تنظیمات منابع، آیکون و فایل‌های HTML -->
+  <!-- این بخش برای رفع هشدارهای نسخه 9 دات‌نت الزامی است -->
   <ItemGroup>
-    <!-- آیکون برنامه -->
+    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+  </ItemGroup>
+
+  <!-- تنظیمات منابع و آیکون‌ها -->
+  <ItemGroup>
     <MauiIcon Include="Resources\AppIcon\appicon.png" Color="#0B3D91" />
-    
-    <!-- اسپلش اسکرین (صفحه‌ای که موقع باز شدن برنامه ظاهر میشه) -->
     <MauiSplashScreen Include="Resources\AppIcon\appicon.png" Color="#0B3D91" BaseSize="128,128" />
-    
-    <!-- فایل‌های HTML و منابع داخلی (برای لود کردن index.html) -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
