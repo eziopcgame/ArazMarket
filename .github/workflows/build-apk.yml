@@ -1,29 +1,20 @@
 name: Build Araz Market APK
 on:
   workflow_dispatch:
-permissions:
-  contents: read
-  actions: read
 jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
-      - name: Install MAUI Android workload
+          dotnet-version: 8.0.x
+      - name: Install MAUI Workload
         run: dotnet workload install maui-android
-      - name: Restore
-        run: dotnet restore ArazMarket/ArazMarket.csproj
-      - name: Publish APK
-        run: dotnet publish ArazMarket/ArazMarket.csproj -f net9.0-android -c Release -p:AndroidPackageFormat=apk
+      - name: Build APK
+        run: dotnet publish ArazMarket/ArazMarket.csproj -f net8.0-android -c Release -p:AndroidPackageFormat=apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ArazMarket-APK
-          path: ArazMarket/bin/Release/net9.0-android/publish/*.apk
-          if-no-files-found: error
-          retention-days: 14
+          path: ArazMarket/bin/Release/net8.0-android/publish/*.apk
