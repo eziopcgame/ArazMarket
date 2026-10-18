@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ArazMarket.MainPage"
+             BackgroundColor="#061B4B"
+             Padding="0">
+    <Grid RowDefinitions="Auto,*" BackgroundColor="#061B4B">
+        <Grid x:Name="TopBar" Grid.Row="0" BackgroundColor="#061B4B" Padding="8,5" IsVisible="False">
+            <Button Text="بازگشت" Clicked="OnBackClicked" HorizontalOptions="Start" TextColor="White" BackgroundColor="#1250B8" />
+        </Grid>
+        <WebView x:Name="AppWebView" Grid.Row="1" Source="index.html" />
+    </Grid>
+</ContentPage>
