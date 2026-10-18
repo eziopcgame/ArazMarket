@@ -9,7 +9,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <!-- تنظیمات اسم و نسخه برنامه -->
     <ApplicationTitle>آراز مارکت</ApplicationTitle>
     <ApplicationId>ir.arazmarket.app</ApplicationId>
     <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
@@ -18,7 +17,6 @@
     <!-- 🔴 این خط برای پشتیبانی از اندروید 5 (API 21) به بالا تنظیم شده است -->
     <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
     
-    <!-- تنظیمات ساخت فایل APK -->
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
 
