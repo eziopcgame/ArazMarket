@@ -1,8 +1,6 @@
 name: Build Araz Market APK
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
 permissions:
   contents: read
   actions: read
