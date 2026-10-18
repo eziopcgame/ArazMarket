@@ -3,284 +3,278 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0B3D91">
+<meta name="theme-color" content="#8A1538">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>مدیریت محصولات</title>
 <style>
   :root {
+    --red-900: #4A0B1D;
+    --red-800: #8A1538;
+    --red-700: #B3204B;
+    
     --blue-900: #061B4B;
     --blue-800: #0B3D91;
     --blue-700: #1250B8;
-    --blue-600: #1E63D8;
-    --blue-500: #3B82F6;
-    --blue-glow: rgba(59,130,246,.45);
+
+    --theme-900: var(--red-900);
+    --theme-800: var(--red-800);
+    --theme-700: var(--red-700);
   }
+
+  body.theme-blue {
+    --theme-900: var(--blue-900);
+    --theme-800: var(--blue-800);
+    --theme-700: var(--blue-700);
+  }
+
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
     font-family: -apple-system, "Vazirmatn", Tahoma, sans-serif;
-    background: linear-gradient(160deg, var(--blue-900) 0%, var(--blue-800) 55%, var(--blue-700) 100%);
+    background: linear-gradient(160deg, var(--theme-900) 0%, var(--theme-800) 55%, var(--theme-700) 100%);
     background-attachment: fixed;
     min-height: 100vh;
     padding: 0 0 90px 0;
     color: #fff;
+    transition: background 0.3s ease;
   }
   .hidden { display: none !important; }
+
+  /* Lock Screen */
   #lockScreen {
     position: fixed; inset: 0;
-    background: linear-gradient(160deg, var(--blue-900), var(--blue-700));
+    background: linear-gradient(160deg, var(--theme-900), var(--theme-700));
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     z-index: 1000; padding: 24px;
   }
   #lockScreen .lock-icon { font-size: 62px; margin-bottom: 14px; animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-  #lockScreen h2 { color: #fff; margin: 0 0 22px; font-size: 20px; }
+  #lockScreen h2 { margin: 0 0 22px; font-size: 20px; }
   #lockScreen input {
-    width: 100%; max-width: 280px;
-    padding: 15px 18px; border: none; border-radius: 14px;
-    font-size: 16px; text-align: center; font-family: inherit;
-    outline: none; letter-spacing: 3px;
-    background: #fff; color: #0B3D91;
-    box-shadow: 0 6px 20px rgba(0,0,0,.3);
+    width: 100%; max-width: 280px; padding: 15px 18px; border: none; border-radius: 14px;
+    font-size: 16px; text-align: center; font-family: inherit; outline: none; letter-spacing: 3px;
+    background: #fff; color: var(--theme-800); box-shadow: 0 6px 20px rgba(0,0,0,.3);
   }
   #lockScreen button {
-    margin-top: 14px; padding: 14px 50px;
-    border: none; border-radius: 14px;
-    background: #fff; color: var(--blue-800);
-    font-size: 16px; font-weight: 800;
-    font-family: inherit; cursor: pointer;
-    box-shadow: 0 6px 20px rgba(0,0,0,.3);
+    margin-top: 14px; padding: 14px 50px; border: none; border-radius: 14px;
+    background: #fff; color: var(--theme-800); font-size: 16px; font-weight: 800;
+    font-family: inherit; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.3);
   }
-  #lockScreen .err { color: #fff; margin-top: 14px; font-size: 13px; height: 18px; }
-  .header { padding: 20px 20px 6px; color: #fff; text-align: center; }
+  #lockScreen .err { margin-top: 14px; font-size: 13px; height: 18px; }
+
+  /* Header */
+  .header { padding: 20px 20px 6px; text-align: center; }
   .header h1 { margin: 0; font-size: 20px; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,.3); }
-  .designer { text-align: center; color: rgba(255,255,255,.55); font-size: 9px; letter-spacing: .5px; margin: 0 0 10px; }
+  .designer { text-align: center; color: rgba(255,255,255,.55); font-size: 9px; margin: 0 0 10px; }
+
+  /* Top Actions */
+  .top-actions { display: flex; gap: 10px; margin: 0 14px 14px; }
+  .top-actions button {
+    flex: 1; padding: 12px; border-radius: 14px; border: 1.5px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.15); color: #fff; font-size: 13px; font-weight: 700;
+    font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .top-actions button:active { background: rgba(255,255,255,.3); }
+
+  /* Update Bar */
   .update-bar {
-    margin: 0 14px 14px; background: rgba(255,255,255,.12);
-    backdrop-filter: blur(8px); border-radius: 14px; padding: 10px 16px;
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px; color: #fff; font-size: 13px; font-weight: 700;
-    cursor: pointer; user-select: none; border: 1.5px solid rgba(255,255,255,.18);
+    margin: 0 14px 14px; background: rgba(255,255,255,.12); backdrop-filter: blur(8px);
+    border-radius: 14px; padding: 10px 16px; display: flex; align-items: center; justify-content: center;
+    gap: 8px; font-size: 13px; font-weight: 700; border: 1.5px solid rgba(255,255,255,.18);
   }
-  .update-bar .arrow { display: inline-block; animation: arrowMove 1.2s ease-in-out infinite; }
+  .update-bar.clickable { cursor: pointer; }
+  .update-bar .arrow { animation: arrowMove 1.2s infinite; }
+  .update-bar .txt { animation: blink 1.8s infinite; }
   @keyframes arrowMove { 0%,100% { transform: translateY(-3px); opacity: .5; } 50% { transform: translateY(3px); opacity: 1; } }
-  .update-bar .txt { animation: blink 1.8s ease-in-out infinite; }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
-  .card {
-    background: rgba(255,255,255,.1); margin: 0 14px 14px;
-    border-radius: 20px; padding: 16px; border: 1.5px solid rgba(255,255,255,.18);
-    backdrop-filter: blur(10px); box-shadow: 0 8px 24px rgba(0,0,0,.25);
-  }
-  .field {
-    display: flex; align-items: center; background: rgba(255,255,255,.12);
-    border-radius: 14px; padding: 0 14px; margin-bottom: 10px;
-    border: 2px solid transparent; transition: border-color .2s, background .2s;
-  }
-  .field:focus-within { border-color: #fff; background: rgba(255,255,255,.18); }
-  .field .ico { font-size: 18px; margin-left: 8px; }
-  .field input {
-    border: none; background: transparent; outline: none; padding: 14px 0;
-    font-size: 15px; width: 100%; font-family: inherit; color: #fff;
-  }
+
+  /* Form & Cards */
+  .card { background: rgba(255,255,255,.1); margin: 0 14px 14px; border-radius: 20px; padding: 16px; border: 1.5px solid rgba(255,255,255,.18); backdrop-filter: blur(10px); }
+  .field { display: flex; align-items: center; background: rgba(255,255,255,.12); border-radius: 14px; padding: 0 14px; margin-bottom: 10px; border: 2px solid transparent; }
+  .field:focus-within { border-color: #fff; background: rgba(255,255,255,.2); }
+  .field input { border: none; background: transparent; outline: none; padding: 14px 0; font-size: 15px; width: 100%; font-family: inherit; color: #fff; }
   .field input::placeholder { color: rgba(255,255,255,.55); }
+  
   .unit-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
-  .unit-toggle label {
-    flex: 1; padding: 12px; text-align: center; border-radius: 12px; cursor: pointer;
-    background: rgba(255,255,255,.12); color: #fff; font-size: 13px; font-weight: 700;
-    border: 2px solid transparent; transition: all .2s; user-select: none;
-  }
-  .unit-toggle label.active { background: #fff; color: var(--blue-800); box-shadow: 0 4px 14px rgba(255,255,255,.25); }
-  .btn {
-    width: 100%; padding: 15px; border: none; border-radius: 14px;
-    font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; transition: transform .15s;
-  }
-  .btn:active { transform: scale(.97); }
-  .btn-primary { background: #fff; color: var(--blue-800); box-shadow: 0 6px 16px rgba(255,255,255,.2); }
+  .unit-toggle label { flex: 1; padding: 12px; text-align: center; border-radius: 12px; cursor: pointer; background: rgba(255,255,255,.12); font-size: 13px; font-weight: 700; border: 2px solid transparent; }
+  .unit-toggle label.active { background: #fff; color: var(--theme-800); box-shadow: 0 4px 14px rgba(255,255,255,.25); }
+
+  .btn { width: 100%; padding: 15px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .btn-primary { background: #fff; color: var(--theme-800); box-shadow: 0 6px 16px rgba(255,255,255,.2); }
   .btn-secondary { background: rgba(255,255,255,.15); color: #fff; margin-top: 8px; border: 1.5px solid rgba(255,255,255,.25); }
-  .btn-receipt { background: #fff; color: var(--blue-800); margin: 0 14px 14px; width: calc(100% - 28px); box-shadow: 0 6px 18px rgba(255,255,255,.25); }
-  .search-box {
-    display: flex; align-items: center; background: rgba(255,255,255,.12);
-    margin: 0 14px 14px; border-radius: 16px; padding: 0 16px;
-    border: 1.5px solid rgba(255,255,255,.18); backdrop-filter: blur(8px);
-  }
-  .search-box .ico { font-size: 18px; margin-left: 8px; }
+  .btn-danger { background: rgba(255, 60, 60, 0.2); color: #FF8A8A; border: 1.5px solid rgba(255, 60, 60, 0.3); margin-top: 8px; box-shadow: none; padding: 10px; font-size: 13px; }
+
+  /* Search & Lists */
+  .search-box { display: flex; align-items: center; background: rgba(255,255,255,.12); margin: 0 14px 14px; border-radius: 16px; padding: 0 16px; border: 1.5px solid rgba(255,255,255,.18); }
   .search-box input { flex: 1; border: none; outline: none; padding: 15px 0; font-size: 15px; font-family: inherit; background: transparent; color: #fff; }
   .search-box input::placeholder { color: rgba(255,255,255,.55); }
-  .list-title { color: #fff; font-size: 13px; font-weight: 700; margin: 0 22px 10px; display: flex; justify-content: space-between; align-items: center; }
+  
+  .list-title { font-size: 13px; font-weight: 700; margin: 0 22px 10px; display: flex; justify-content: space-between; }
   .list-title span { background: rgba(255,255,255,.2); padding: 2px 10px; border-radius: 20px; font-size: 12px; }
-  .product {
-    background: rgba(255,255,255,.12); margin: 0 14px 10px; border-radius: 16px; padding: 12px 14px;
-    display: flex; align-items: center; gap: 12px; border: 1.5px solid rgba(255,255,255,.18);
-    backdrop-filter: blur(8px); animation: slideIn .28s ease; transition: all .2s;
-  }
-  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-  .product.selected { background: rgba(255,255,255,.24); border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.5), 0 6px 18px rgba(0,0,0,.25); }
-  .product .check {
-    width: 26px; height: 26px; flex-shrink: 0; border-radius: 8px;
-    border: 2.5px solid rgba(255,255,255,.5); display: flex; align-items: center; justify-content: center;
-    font-size: 15px; color: #fff; transition: all .2s;
-  }
-  .product.selected .check { background: #fff; border-color: #fff; color: var(--blue-800); }
+
+  .product { background: rgba(255,255,255,.12); margin: 0 14px 10px; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; border: 1.5px solid rgba(255,255,255,.18); }
+  .product.selected { background: rgba(255,255,255,.24); border-color: #fff; }
+  .product .check { width: 26px; height: 26px; border-radius: 8px; border: 2.5px solid rgba(255,255,255,.5); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .product.selected .check { background: #fff; color: var(--theme-800); border-color: #fff; }
   .product .info { flex: 1; min-width: 0; }
-  .product .name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .product .name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .product .meta { font-size: 11.5px; margin-top: 4px; color: rgba(255,255,255,.75); }
-  .product .meta .unit-badge { display: inline-block; background: rgba(255,255,255,.2); color: #fff; padding: 1px 8px; border-radius: 8px; font-size: 10.5px; font-weight: 700; margin-left: 4px; }
-  .product .price { font-size: 13px; font-weight: 700; color: #fff; margin-top: 4px; }
-  .product .price small { font-weight: 400; color: rgba(255,255,255,.65); font-size: 11px; }
+  .product .price { font-size: 13px; font-weight: 700; margin-top: 4px; }
+
   .actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .btn-icon {
-    width: 38px; height: 38px; border: 1.5px solid rgba(255,255,255,.25); border-radius: 12px;
-    background: rgba(255,255,255,.15); color: #fff; font-size: 16px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: transform .15s, background .15s;
-  }
-  .btn-icon:active { transform: scale(.9); background: rgba(255,255,255,.3); }
+  .btn-icon { width: 38px; height: 38px; border: 1.5px solid rgba(255,255,255,.25); border-radius: 12px; background: rgba(255,255,255,.15); color: #fff; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  
   .qty-control { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-  .qty-btn {
-    width: 32px; height: 32px; border: 1.5px solid rgba(255,255,255,.25); border-radius: 10px;
-    background: rgba(255,255,255,.18); color: #fff; font-size: 18px; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .qty-btn:active { transform: scale(.9); background: rgba(255,255,255,.35); }
-  .qty-input {
-    width: 56px; height: 34px; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px;
-    text-align: center; font-size: 14px; font-weight: 700; font-family: inherit; color: #fff;
-    outline: none; background: rgba(255,255,255,.1);
-  }
-  .qty-input:focus { border-color: #fff; background: rgba(255,255,255,.2); }
-  .qty-input::-webkit-inner-spin-button, .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .qty-btn { width: 32px; height: 32px; border: 1.5px solid rgba(255,255,255,.25); border-radius: 10px; background: rgba(255,255,255,.18); color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+  .qty-input { width: 56px; height: 34px; border: 1.5px solid rgba(255,255,255,.3); border-radius: 10px; text-align: center; font-size: 14px; font-weight: 700; font-family: inherit; color: #fff; background: rgba(255,255,255,.1); outline: none; }
+
   .empty { text-align: center; color: rgba(255,255,255,.8); padding: 40px 20px; }
   .empty .emoji { font-size: 52px; display: block; margin-bottom: 10px; }
-  .empty p { margin: 0; font-size: 14px; }
-  .total-card {
-    background: rgba(255,255,255,.15); color: #fff; margin: 4px 14px 14px; border-radius: 18px; padding: 16px 18px;
-    display: flex; justify-content: space-between; align-items: center; border: 1.5px solid rgba(255,255,255,.25); backdrop-filter: blur(8px);
-  }
-  .total-card .lbl { font-size: 13px; }
+
+  .total-card { background: rgba(255,255,255,.15); margin: 0 14px 10px; border-radius: 18px; padding: 14px 16px; display: flex; justify-content: space-between; border: 1.5px solid rgba(255,255,255,.25); }
   .total-card .val { font-size: 18px; font-weight: 800; }
-  .total-card .val small { font-size: 12px; font-weight: 500; opacity: .8; }
-  .bottom-bar {
-    position: fixed; bottom: 0; left: 0; right: 0; background: rgba(11,61,145,.95); backdrop-filter: blur(12px);
-    padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 10px;
-    box-shadow: 0 -6px 20px rgba(0,0,0,.35); border-radius: 22px 22px 0 0; border-top: 1.5px solid rgba(255,255,255,.15);
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; background: var(--theme-900); backdrop-filter: blur(12px);
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 10px; border-top: 1.5px solid rgba(255,255,255,.15);
+    transition: background 0.3s ease;
   }
-  .bottom-bar button {
-    flex: 1; border: none; padding: 13px 6px; border-radius: 14px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(255,255,255,.15); color: #fff;
-    border: 1.5px solid rgba(255,255,255,.2); transition: transform .15s, background .15s;
+  .bottom-nav button {
+    flex: 1; border: none; padding: 12px; border-radius: 14px; font-size: 14px; font-weight: 700; font-family: inherit; color: #fff;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.2);
   }
-  .bottom-bar button:active { transform: scale(.95); background: rgba(255,255,255,.3); }
-  .bottom-bar .ico { font-size: 18px; }
-  .bottom-bar .btn-primary-nav { background: #fff; color: var(--blue-800); border-color: #fff; }
-  .toast {
-    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: #fff; color: var(--blue-800); padding: 12px 22px; border-radius: 30px; font-size: 13px; font-weight: 700;
-    opacity: 0; pointer-events: none; transition: all .3s; z-index: 100; white-space: nowrap; max-width: 90vw; text-align: center;
-    box-shadow: 0 8px 24px rgba(0,0,0,.35);
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .modal {
-    position: fixed; inset: 0; background: rgba(6,27,75,.85); display: flex; align-items: center; justify-content: center;
-    z-index: 200; padding: 16px; overflow-y: auto; backdrop-filter: blur(6px);
-  }
-  .modal-card {
-    background: linear-gradient(160deg, var(--blue-800), var(--blue-700)); border: 1.5px solid rgba(255,255,255,.25); color: #fff;
-    border-radius: 22px; padding: 22px; max-width: 380px; width: 100%; max-height: 90vh; overflow-y: auto;
-    animation: zoomIn .25s ease; box-shadow: 0 20px 50px rgba(0,0,0,.5);
-  }
-  @keyframes zoomIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .modal-title { text-align: center; margin: 0 0 4px; font-size: 18px; font-weight: 800; color: #fff; }
+  .bottom-nav button.active { background: #fff; color: var(--theme-800); border-color: #fff; }
+
+  /* Modal & Receipt */
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; backdrop-filter: blur(4px); }
+  .modal-card { background: linear-gradient(160deg, var(--theme-800), var(--theme-700)); border: 1.5px solid rgba(255,255,255,.25); border-radius: 22px; padding: 22px; max-width: 400px; width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
+  .modal-title { text-align: center; margin: 0 0 4px; font-size: 18px; font-weight: 800; }
   .modal-sub { text-align: center; font-size: 11px; color: rgba(255,255,255,.7); margin: 0 0 14px; }
-  .modal-line { border-top: 2px dashed rgba(255,255,255,.25); margin: 12px 0; }
-  .receipt-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  .receipt-table th { color: rgba(255,255,255,.75); font-weight: 700; padding: 6px 4px; text-align: right; font-size: 11.5px; border-bottom: 1.5px solid rgba(255,255,255,.2); }
-  .receipt-table td { padding: 8px 4px; text-align: right; color: #fff; border-bottom: 1px solid rgba(255,255,255,.1); }
-  .receipt-table td.num { font-weight: 700; }
-  .receipt-table td.price { color: #7FE7C9; font-weight: 700; }
-  .receipt-total {
-    display: flex; justify-content: space-between; align-items: center; background: #fff; color: var(--blue-800);
-    padding: 14px 18px; border-radius: 14px; margin-top: 14px; box-shadow: 0 6px 18px rgba(255,255,255,.2);
-  }
-  .receipt-total .lbl { font-size: 13px; font-weight: 700; }
-  .receipt-total .val { font-size: 18px; font-weight: 800; }
+  
+  /* جدول رسید */
+  .receipt-table-wrapper { width: 100%; overflow-x: auto; margin-bottom: 10px; background: rgba(0,0,0,.15); border-radius: 10px; }
+  .receipt-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 300px; }
+  .receipt-table th { background: rgba(0,0,0,.2); padding: 10px 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.2); white-space: nowrap; }
+  .receipt-table td { padding: 10px 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.1); }
+  .receipt-total { display: flex; justify-content: space-between; background: #fff; color: var(--theme-800); padding: 12px 16px; border-radius: 12px; margin-top: 10px; font-weight: 800; font-size: 15px; }
+  
   .receipt-actions { display: flex; gap: 10px; margin-top: 16px; }
   .receipt-actions button { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; }
   .receipt-close { background: rgba(255,255,255,.15); color: #fff; border: 1.5px solid rgba(255,255,255,.25); }
-  .receipt-print { background: #fff; color: var(--blue-800); border: none; }
-  .info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.1); }
-  .info-row .k { color: rgba(255,255,255,.75); }
-  .info-row .v { color: #fff; font-weight: 700; text-align: left; }
-  .info-section-title {
-    font-size: 12px; font-weight: 700; color: rgba(255,255,255,.85); margin: 14px 0 8px;
-    padding-right: 6px; border-right: 3px solid #fff; padding: 4px 8px; background: rgba(255,255,255,.08); border-radius: 6px;
-  }
-  .history-item { display: flex; justify-content: space-between; padding: 6px 4px; font-size: 11.5px; color: rgba(255,255,255,.85); border-bottom: 1px dashed rgba(255,255,255,.15); }
-  .history-item .h-when { color: rgba(255,255,255,.6); font-size: 10.5px; }
-  .select-bar { margin: 0 14px 10px; display: flex; gap: 8px; }
-  .select-bar button {
-    flex: 1; padding: 10px; border: 1.5px solid rgba(255,255,255,.25); border-radius: 12px; font-size: 12px; font-weight: 700;
-    font-family: inherit; cursor: pointer; background: rgba(255,255,255,.15); color: #fff;
-  }
-  .select-bar button:active { background: rgba(255,255,255,.3); }
+  .receipt-print { background: #fff; color: var(--theme-800); border: none; }
+
+  /* Diff Box */
+  .diff-box { background: rgba(0,0,0,.2); border-radius: 10px; padding: 10px; margin: 10px 0; font-size: 12px; max-height: 200px; overflow-y: auto; }
+  .diff-add { color: #7FE7C9; margin-bottom: 4px; }
+  .diff-remove { color: #FF8A8A; margin-bottom: 4px; }
+  .diff-change { color: #FFD700; margin-bottom: 4px; }
+
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #fff; color: #333; padding: 12px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; opacity: 0; transition: all .3s; pointer-events: none; z-index: 100; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
+  /* ====== استایل‌های اختصاصی چاپ (پرینت) ====== */
   @media print {
+    @page { margin: 10mm; }
     body * { visibility: hidden; }
     .modal, .modal * { visibility: visible; }
-    .modal { position: absolute; inset: 0; background: #fff; padding: 0; }
-    .modal-card { background: #fff; color: #000; box-shadow: none; max-height: none; max-width: 100%; border-radius: 0; border: none; }
-    .modal-card * { color: #000 !important; }
-    .receipt-actions { display: none; }
-    .receipt-total { background: #f0f0f0; }
+    .modal { position: absolute; inset: 0; background: #fff !important; padding: 0 !important; display: block !important; backdrop-filter: none !important; }
+    .modal-card { background: #fff !important; color: #000 !important; border: none !important; box-shadow: none !important; max-height: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+    .modal-title, .modal-sub { color: #000 !important; margin-bottom: 15px !important; }
+    
+    /* جدول سیاه و سفید */
+    .receipt-table-wrapper { background: transparent !important; overflow: visible !important; }
+    .receipt-table { border: 1.5px solid #000 !important; }
+    .receipt-table th { background: #eee !important; color: #000 !important; border-bottom: 1.5px solid #000 !important; border-left: 1px solid #000 !important; }
+    .receipt-table td { color: #000 !important; border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; }
+    .receipt-table th:last-child, .receipt-table td:last-child { border-left: none !important; }
+    
+    /* جمع کل سیاه و سفید */
+    .receipt-total { background: #eee !important; color: #000 !important; border: 1.5px solid #000 !important; }
+    
+    .receipt-actions { display: none !important; }
   }
 </style>
 </head>
-<body>
+<body class="theme-red">
+
 <div id="lockScreen">
   <div class="lock-icon">🔒</div>
-  <h2>ورود به برنامه</h2>
+  <h2>ورود به آراز مارکت</h2>
   <input type="password" id="passInput" placeholder="رمز عبور" autocomplete="off">
   <button onclick="tryLogin()">ورود</button>
   <div class="err" id="lockErr"></div>
 </div>
+
 <div id="mainApp" class="hidden">
+  
+  <!-- ================= صفحه ثبت محصول (قرمز) ================= -->
   <div id="pageEdit">
-    <div class="header"><h1>✏️ ویرایش محصولات</h1></div>
+    <div class="header"><h1>📝 ثبت محصولات</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
-    <div class="update-bar" onclick="forceUpdate()"><span class="arrow">⬇️</span><span class="txt" id="updateTime">—</span><span class="arrow">⬆️</span></div>
+    
+    <div class="top-actions">
+      <button onclick="showExportOptions()">📤 ارسال</button>
+      <button onclick="showImportOptions()">📥 دریافت</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importFile(event)">
+    </div>
+
+    <div class="update-bar clickable" onclick="forceUpdate()">
+      <span class="arrow">⬇️</span><span class="txt" id="updateTime">—</span><span class="arrow">⬆️</span>
+    </div>
+
     <div class="card">
       <div class="field"><span class="ico">📦</span><input id="name" placeholder="نام محصول"></div>
       <div class="field"><span class="ico">💰</span><input id="price" type="number" inputmode="numeric" placeholder="قیمت (ریال)"></div>
       <div class="unit-toggle">
-        <label id="unitPieceLbl" class="active" onclick="setUnit('piece')">🔢 تعددی (عدد)</label>
+        <label id="unitPieceLbl" class="active" onclick="setUnit('piece')">🔢 عددی</label>
         <label id="unitKgLbl" onclick="setUnit('kg')">⚖️ کیلویی</label>
       </div>
-      <button class="btn btn-primary" id="submitBtn" onclick="submitProduct()">افزودن محصول</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitProduct()">➕ افزودن محصول</button>
       <button class="btn btn-secondary hidden" id="cancelEditBtn" onclick="cancelEdit()">لغو ویرایش</button>
     </div>
+
     <div class="search-box"><span class="ico">🔍</span><input id="search" placeholder="جستجوی محصول..." oninput="renderEdit()"></div>
     <div class="list-title">لیست محصولات <span id="count">0</span></div>
     <div id="listEdit"></div>
-    <div class="bottom-bar">
-      <button class="btn-primary-nav" onclick="switchPage('select')"><span class="ico">🧮</span> محاسبه</button>
-      <button onclick="exportFile()"><span class="ico">📤</span> ارسال</button>
-      <button onclick="document.getElementById('importFile').click()"><span class="ico">📥</span> دریافت</button>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importFile(event)">
+  </div>
+
+  <!-- ================= صفحه محاسبه (آبی) ================= -->
+  <div id="pageSelect" class="hidden">
+    <div class="header"><h1>🧮 محاسبه و رسید</h1></div>
+    <div class="designer">طراح : مبین قاسم اقدمی</div>
+    
+    <div class="update-bar">
+      <span class="txt" id="updateTime2">—</span>
+    </div>
+    
+    <button class="btn btn-secondary" style="margin: 0 14px 10px; width: calc(100% - 28px); border: none; background: rgba(255,255,255,.25); color: #fff;" onclick="showProductSelector()">🔍 انتخاب از میان محصولات</button>
+    
+    <button class="btn btn-primary" style="margin: 0 14px 10px; width: calc(100% - 28px);" onclick="showReceipt()">🧾 ساخت رسید</button>
+
+    <div class="total-card"><span>💰 مجموع</span><span class="val"><span id="totalSelect">۰</span> ریال</span></div>
+    <div class="total-card"><span>📦 تعداد اقلام</span><span class="val"><span id="countSelected">۰</span> مورد</span></div>
+
+    <button class="btn btn-danger" style="margin: 0 14px 15px; width: calc(100% - 28px);" onclick="selectAll(false)">✕ حذف همه انتخاب‌ها</button>
+
+    <div id="selectedProductsContainer">
+      <div class="list-title" style="margin-top: 5px;">محصولات انتخاب شده <span id="countSelect">0</span></div>
+      <div id="listSelect"></div>
     </div>
   </div>
-  <div id="pageSelect" class="hidden">
-    <div class="header"><h1>🧮 انتخاب و محاسبه</h1></div>
-    <div class="designer">طراح : مبین قاسم اقدمی</div>
-    <div class="update-bar" onclick="forceUpdate()"><span class="arrow">⬇️</span><span class="txt" id="updateTime2">—</span><span class="arrow">⬆️</span></div>
-    <div class="search-box"><span class="ico">🔍</span><input id="searchSelect" placeholder="جستجوی محصول..." oninput="renderSelect()"></div>
-    <div class="select-bar"><button onclick="selectAll(true)">✓ انتخاب همه</button><button onclick="selectAll(false)">✕ حذف انتخاب</button></div>
-    <div class="list-title">محصولات <span id="countSelect">0</span></div>
-    <div id="listSelect"></div>
-    <button class="btn btn-receipt" onclick="showReceipt()">🧾 ساخت رسید</button>
-    <div class="total-card"><span class="lbl">💰 مجموع انتخاب‌شده</span><span class="val"><span id="totalSelect">۰</span> <small>ریال</small></span></div>
-    <div class="total-card"><span class="lbl">📦 تعداد اقلام</span><span class="val"><span id="countSelected">۰</span> <small>مورد</small></span></div>
-    <div class="bottom-bar"><button class="btn-primary-nav" onclick="switchPage('edit')"><span class="ico">✏️</span> ویرایش</button></div>
+
+  <!-- ================= منوی پایین ================= -->
+  <div class="bottom-nav">
+    <button id="navEditBtn" class="active" onclick="switchPage('edit')">📝 ثبت محصول</button>
+    <button id="navSelectBtn" onclick="switchPage('select')">🧮 محاسبه</button>
   </div>
+
 </div>
+
 <div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 let products = JSON.parse(localStorage.getItem('products') || '[]');
 let lastUpdate = localStorage.getItem('lastUpdate') || '';
@@ -289,20 +283,13 @@ let editingIndex = -1;
 let currentUnit = 'piece';
 const PASSWORD = 'araz';
 
-function nowFa(){
-  return new Date().toLocaleString('fa-IR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'});
-}
+function nowFa(){ return new Date().toLocaleString('fa-IR', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}); }
 function tryLogin(){
-  const v = document.getElementById('passInput').value;
-  if(v === PASSWORD){
+  if(document.getElementById('passInput').value === PASSWORD){
     document.getElementById('lockScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.remove('hidden');
-    sessionStorage.setItem('logged', '1');
-    init();
-  } else {
-    document.getElementById('lockErr').textContent = '❌ رمز اشتباه است';
-    document.getElementById('passInput').value = '';
-  }
+    sessionStorage.setItem('logged', '1'); init();
+  } else { document.getElementById('lockErr').textContent = '❌ رمز اشتباه است'; document.getElementById('passInput').value = ''; }
 }
 document.getElementById('passInput').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
 function save(){ localStorage.setItem('products', JSON.stringify(products)); setUpdateNow(); }
@@ -313,36 +300,48 @@ function updateTimes(){
   const t1 = document.getElementById('updateTime'), t2 = document.getElementById('updateTime2');
   if(t1) t1.textContent = txt; if(t2) t2.textContent = txt;
 }
-function toast(msg){
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2200);
-}
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2200); }
 function fmtRial(n){ return Number(n).toLocaleString('en-US'); }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function unitLabel(u){ return u === 'kg' ? 'کیلوگرم' : 'عدد'; }
-function unitIcon(u){ return u === 'kg' ? '⚖️' : '🔢'; }
-function fmtQty(u, q){
-  const n = Number(q);
-  return u === 'kg' ? n.toLocaleString('en-US', {maximumFractionDigits:2}) : Math.round(n).toLocaleString('en-US');
-}
+function fmtQty(u, q){ return u === 'kg' ? Number(q).toLocaleString('en-US', {maximumFractionDigits:2}) : Math.round(q).toLocaleString('en-US'); }
 function setUnit(u){
   currentUnit = u;
   document.getElementById('unitPieceLbl').classList.toggle('active', u === 'piece');
   document.getElementById('unitKgLbl').classList.toggle('active', u === 'kg');
 }
+
+function switchPage(page){
+  document.getElementById('pageEdit').classList.toggle('hidden', page !== 'edit');
+  document.getElementById('pageSelect').classList.toggle('hidden', page !== 'select');
+  document.getElementById('navEditBtn').classList.toggle('active', page === 'edit');
+  document.getElementById('navSelectBtn').classList.toggle('active', page === 'select');
+  
+  if(page === 'edit') {
+    document.body.className = 'theme-red';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#8A1538');
+  } else {
+    document.body.className = 'theme-blue';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0B3D91');
+  }
+  
+  window.scrollTo(0,0);
+  if(page === 'edit') renderEdit(); else renderSelect();
+}
+
+/* ================= ثبت محصول ================= */
 function submitProduct(){
   const nameEl = document.getElementById('name'), priceEl = document.getElementById('price');
   const name = nameEl.value.trim(), price = priceEl.value.trim();
-  if(!name){ toast('⚠️ نام محصول را وارد کنید'); nameEl.focus(); return; }
-  if(!price){ toast('⚠️ قیمت را وارد کنید'); priceEl.focus(); return; }
+  if(!name || !price){ toast('⚠️ نام و قیمت را وارد کنید'); return; }
   if(editingIndex >= 0){
     const old = products[editingIndex];
-    const newProd = {...old, name, price:Number(price), unit:currentUnit, updatedAt:nowFa()};
-    newProd.history = (old.history || []).concat([{when:nowFa(), action:'ویرایش', detail:`نام: «${name}» — قیمت: ${fmtRial(price)} ریال — واحد: ${unitLabel(currentUnit)}`}]);
-    products[editingIndex] = newProd; toast('✅ ویرایش شد');
+    products[editingIndex] = {...old, name, price:Number(price), unit:currentUnit, updatedAt:nowFa()};
+    products[editingIndex].history = (old.history||[]).concat([{when:nowFa(), action:'ویرایش', detail:`قیمت جدید: ${fmtRial(price)}`}]);
+    toast('✅ ویرایش شد');
   } else {
     const when = nowFa();
-    products.unshift({name, price:Number(price), unit:currentUnit, createdAt:when, updatedAt:when, history:[{when, action:'ایجاد', detail:`افزودن اولیه — ${unitLabel(currentUnit)}`}]});
+    products.unshift({name, price:Number(price), unit:currentUnit, createdAt:when, updatedAt:when, history:[{when, action:'ایجاد', detail:'افزودن اولیه'}]});
     toast('✅ اضافه شد');
   }
   cancelEdit(); save(); renderEdit(); renderSelect();
@@ -350,159 +349,324 @@ function submitProduct(){
 function editProduct(i){
   editingIndex = i; const p = products[i];
   document.getElementById('name').value = p.name; document.getElementById('price').value = p.price;
-  setUnit(p.unit || 'piece'); document.getElementById('submitBtn').textContent = '💾 ذخیره ویرایش';
+  setUnit(p.unit); document.getElementById('submitBtn').textContent = '💾 ذخیره ویرایش';
   document.getElementById('cancelEditBtn').classList.remove('hidden'); document.getElementById('name').focus();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 function cancelEdit(){
   editingIndex = -1; document.getElementById('name').value = ''; document.getElementById('price').value = '';
-  setUnit('piece'); document.getElementById('submitBtn').textContent = 'افزودن محصول';
+  setUnit('piece'); document.getElementById('submitBtn').textContent = '➕ افزودن محصول';
   document.getElementById('cancelEditBtn').classList.add('hidden');
 }
-function removeProduct(i){
-  if(!confirm('این محصول حذف شود؟')) return;
-  products.splice(i,1); selected.clear(); save(); renderEdit(); renderSelect(); toast('🗑 حذف شد');
-}
+function removeProduct(i){ if(confirm('حذف شود؟')){ products.splice(i,1); selected.clear(); save(); renderEdit(); renderSelect(); } }
 function showInfo(i){
-  const p = products[i], u = p.unit || 'piece', hist = (p.history || []).slice().reverse();
-  const histHtml = hist.length
-    ? hist.map(h => `<div class="history-item"><span>${escapeHtml(h.action)} — ${escapeHtml(h.detail)}</span><span class="h-when">${escapeHtml(h.when)}</span></div>`).join('')
-    : '<div class="history-item"><span>تاریخچه‌ای ثبت نشده</span></div>';
-  openModal(`
-    <h3 class="modal-title">📋 اطلاعات محصول</h3><p class="modal-sub">${escapeHtml(p.name)}</p>
-    <div class="info-row"><span class="k">نام</span><span class="v">${escapeHtml(p.name)}</span></div>
-    <div class="info-row"><span class="k">قیمت واحد</span><span class="v">${fmtRial(p.price)} ریال</span></div>
-    <div class="info-row"><span class="k">واحد</span><span class="v">${unitIcon(u)} ${unitLabel(u)}</span></div>
-    <div class="info-row"><span class="k">تاریخ ایجاد</span><span class="v">${escapeHtml(p.createdAt || '—')}</span></div>
-    <div class="info-row"><span class="k">آخرین ویرایش</span><span class="v">${escapeHtml(p.updatedAt || '—')}</span></div>
-    <div class="info-section-title">📜 تاریخچه</div>${histHtml}
-    <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">بستن</button><button class="receipt-print" onclick="closeModal(); editProduct(${i})">✏️ ویرایش</button></div>
-  `);
+  const p = products[i];
+  openModal(`<h3 class="modal-title">اطلاعات محصول</h3><p class="modal-sub">${escapeHtml(p.name)}</p>
+    <div style="font-size:13px; line-height:2;">
+      <div>💰 قیمت: ${fmtRial(p.price)} ریال</div>
+      <div>⚖️ واحد: ${unitLabel(p.unit)}</div>
+      <div>📅 ایجاد: ${p.createdAt}</div>
+      <div>🔄 آخرین ویرایش: ${p.updatedAt}</div>
+    </div>
+    <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">بستن</button><button class="receipt-print" onclick="closeModal();editProduct(${i})">ویرایش</button></div>`);
 }
 function renderEdit(){
   const q = document.getElementById('search').value.trim().toLowerCase(), list = document.getElementById('listEdit');
   const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
   document.getElementById('count').textContent = filtered.length;
-  if(filtered.length === 0){
-    list.innerHTML = `<div class="empty"><span class="emoji">${q ? '🔍' : '📦'}</span><p>${q ? 'چیزی پیدا نشد' : 'هنوز محصولی اضافه نکردی'}</p></div>`; return;
-  }
-  list.innerHTML = filtered.map(({p,i}) => {
-    const u = p.unit || 'piece';
-    return `<div class="product"><div class="info"><div class="name">${escapeHtml(p.name)}</div>
-      <div class="meta"><span class="unit-badge">${unitIcon(u)} ${unitLabel(u)}</span><span style="font-size:10.5px;opacity:.7;">آخرین ویرایش: ${escapeHtml(p.updatedAt || p.createdAt || '—')}</span></div>
-      <div class="price">${fmtRial(p.price)} <small>ریال / ${unitLabel(u)}</small></div></div>
-      <div class="actions"><button class="btn-icon" title="اطلاعات" onclick="showInfo(${i})">⋮</button><button class="btn-icon" title="ویرایش" onclick="editProduct(${i})">✏️</button></div></div>`;
-  }).join('');
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><span class="emoji">📦</span><p>محصولی یافت نشد</p></div>`; return; }
+  list.innerHTML = filtered.map(({p,i}) => `
+    <div class="product">
+      <div class="info">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="meta">${unitLabel(p.unit)} | ${escapeHtml(p.updatedAt)}</div>
+        <div class="price">${fmtRial(p.price)} ریال</div>
+      </div>
+      <div class="actions">
+        <button class="btn-icon" onclick="showInfo(${i})">⋮</button>
+        <button class="btn-icon" onclick="editProduct(${i})">✏️</button>
+      </div>
+    </div>`).join('');
 }
+
+/* ================= محاسبه ================= */
 function renderSelect(){
-  const q = document.getElementById('searchSelect').value.trim().toLowerCase(), list = document.getElementById('listSelect');
-  const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
-  document.getElementById('countSelect').textContent = filtered.length;
-  if(filtered.length === 0){
-    list.innerHTML = `<div class="empty"><span class="emoji">${q ? '🔍' : '📦'}</span><p>${q ? 'چیزی پیدا نشد' : 'هنوز محصولی اضافه نکردی'}</p></div>`;
+  const list = document.getElementById('listSelect');
+  const countEl = document.getElementById('countSelect');
+  
+  if(selected.size === 0) {
+    list.innerHTML = '';
+    countEl.textContent = '0';
+    document.querySelector('#selectedProductsContainer .list-title').style.display = 'none';
+    updateTotals();
+    return;
   } else {
-    list.innerHTML = filtered.map(({p,i}) => {
-      const sel = selected.has(i), u = p.unit || 'piece', qty = selected.get(i) || 1;
-      return `<div class="product ${sel ? 'selected' : ''}" onclick="toggleSelect(${i}, event)">
-        <div class="check">${sel ? '✓' : ''}</div><div class="info"><div class="name">${escapeHtml(p.name)}</div>
-        <div class="meta"><span class="unit-badge">${unitIcon(u)} ${unitLabel(u)}</span></div>
-        <div class="price">${fmtRial(p.price)} <small>ریال / ${unitLabel(u)}</small></div></div>
-        ${sel ? `<div class="qty-control" onclick="event.stopPropagation()"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
-        <input class="qty-input" type="number" inputmode="decimal" min="${u==='kg'?'0.1':'1'}" step="${u==='kg'?'0.1':'1'}" value="${qty}" onchange="setQty(${i}, this.value)">
-        <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>` : ''}</div>`;
-    }).join('');
+    document.querySelector('#selectedProductsContainer .list-title').style.display = 'flex';
   }
+
+  let html = '';
+  selected.forEach((qty, i) => {
+    const p = products[i];
+    if(!p) return;
+    const u = p.unit || 'piece';
+    html += `<div class="product selected">
+      <div class="check">✓</div>
+      <div class="info">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="price">${fmtRial(p.price)} ریال</div>
+      </div>
+      <div class="qty-control" onclick="event.stopPropagation()">
+        <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
+        <input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)">
+        <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
+      </div>
+      <button class="btn-icon" style="margin-right: 5px; border-color: transparent; background: rgba(255,0,0,0.2); color: #ff8a8a;" onclick="toggleSelect(${i})">✕</button>
+    </div>`;
+  });
+  
+  list.innerHTML = html;
+  countEl.textContent = selected.size;
   updateTotals();
 }
-function toggleSelect(i, ev){
-  if(ev && ev.target.closest('.qty-control')) return;
-  if(selected.has(i)) selected.delete(i); else selected.set(i,1);
+
+function toggleSelect(i){
+  if(selected.has(i)) selected.delete(i);
+  else selected.set(i, 1);
   renderSelect();
+  // اگر مودال باز بود، اون رو هم آپدیت کن
+  if(document.getElementById('appModal') && document.getElementById('searchInModal')) {
+    renderProductSelector();
+  }
 }
-function changeQty(i, delta){
+
+function changeQty(i, d){
   if(!selected.has(i)) return;
-  const u = products[i].unit || 'piece'; let v = Number(selected.get(i)) + delta;
-  if(u === 'kg'){ if(v < 0.1) v = 0.1; v = Math.round(v*100)/100; }
-  else { v = Math.round(v); if(v < 1) v = 1; }
-  selected.set(i,v); renderSelect();
+  let v = Number(selected.get(i)) + d;
+  const unit = products[i].unit || 'piece';
+  if(unit === 'kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; }
+  else { if(v<1)v=1; v=Math.round(v); }
+  selected.set(i, v); renderSelect();
+  if(document.getElementById('appModal') && document.getElementById('searchInModal')) {
+    renderProductSelector();
+  }
 }
+
 function setQty(i, raw){
-  const u = products[i].unit || 'piece'; let v = Number(raw);
-  if(isNaN(v)) v = 1;
-  if(u === 'kg'){ if(v < 0.1) v = 0.1; v = Math.round(v*100)/100; }
-  else { v = Math.round(v); if(v < 1) v = 1; }
-  selected.set(i,v); renderSelect();
+  if(!selected.has(i)) return;
+  let v = Number(raw); if(isNaN(v))v=1;
+  const unit = products[i].unit || 'piece';
+  if(unit === 'kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; }
+  else { if(v<1)v=1; v=Math.round(v); }
+  selected.set(i, v); renderSelect();
+  if(document.getElementById('appModal') && document.getElementById('searchInModal')) {
+    renderProductSelector();
+  }
 }
+
 function selectAll(on){
-  if(on) products.forEach((_,i) => { if(!selected.has(i)) selected.set(i,1); });
+  if(on) products.forEach((_,i) => selected.set(i,1));
   else selected.clear();
   renderSelect();
+  if(document.getElementById('appModal') && document.getElementById('searchInModal')) {
+    renderProductSelector();
+  }
 }
+
 function updateTotals(){
-  let total = 0, count = 0;
-  selected.forEach((qty,i) => { if(products[i]){ total += products[i].price * qty; count++; } });
-  document.getElementById('totalSelect').textContent = fmtRial(total);
-  document.getElementById('countSelected').textContent = count.toLocaleString('fa-IR');
+  let t=0, c=0;
+  selected.forEach((q,i) => { if(products[i]){ t += products[i].price*q; c++; } });
+  document.getElementById('totalSelect').textContent = fmtRial(t);
+  document.getElementById('countSelected').textContent = c;
 }
-function switchPage(page){
-  document.getElementById('pageEdit').classList.toggle('hidden',page !== 'edit');
-  document.getElementById('pageSelect').classList.toggle('hidden',page !== 'select');
-  window.scrollTo(0,0); if(page === 'edit') renderEdit(); else renderSelect();
+
+/* ================= انتخاب از میان محصولات (مودال) ================= */
+function showProductSelector(){
+  openModal(`
+    <h3 class="modal-title">انتخاب محصولات</h3>
+    
+    <!-- دکمه بستن به بالای لیست منتقل شد و کنار کادر جستجو قرار گرفت -->
+    <div style="display: flex; gap: 8px; margin: 0 0 10px 0;">
+      <div class="search-box" style="margin: 0; flex: 1; background: rgba(0,0,0,0.2); padding: 0 10px;">
+        <span class="ico">🔍</span>
+        <input id="searchInModal" placeholder="جستجو..." oninput="renderProductSelector()">
+      </div>
+      <button class="btn btn-secondary" style="margin: 0; width: auto; padding: 0 15px; border: none; background: rgba(255,255,255,.2); color: #fff; font-size: 13px;" onclick="closeModal()">بستن</button>
+    </div>
+
+    <div id="selectorList" style="flex: 1; overflow-y: auto; min-height: 200px; max-height: 50vh;"></div>
+  `);
+  setTimeout(() => { document.getElementById('searchInModal').focus(); renderProductSelector(); }, 100);
 }
+
+function renderProductSelector(){
+  const q = document.getElementById('searchInModal').value.trim().toLowerCase();
+  const listEl = document.getElementById('selectorList');
+  const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
+  
+  if(!filtered.length) {
+    listEl.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6;">محصولی یافت نشد</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(({p, i}) => {
+    const isSelected = selected.has(i);
+    const u = p.unit || 'piece';
+    const qty = selected.get(i) || 1;
+    
+    return `<div class="product ${isSelected ? 'selected' : ''}" style="margin: 0 0 8px 0; background: rgba(255,255,255,0.1); border-color: ${isSelected ? '#fff' : 'rgba(255,255,255,0.1)'}; padding: 10px 12px;">
+      <div class="check" onclick="toggleSelectorItem(${i})">${isSelected ? '✓' : ''}</div>
+      <div class="info" onclick="toggleSelectorItem(${i})">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="price">${fmtRial(p.price)} ریال / ${unitLabel(u)}</div>
+      </div>
+      ${isSelected ? `<div class="qty-control" onclick="event.stopPropagation()">
+        <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
+        <input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)">
+        <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleSelectorItem(i){
+  if(selected.has(i)) selected.delete(i);
+  else selected.set(i, 1);
+  renderProductSelector();
+  renderSelect();
+}
+
+/* ================= رسید ================= */
 function showReceipt(){
-  if(selected.size === 0){ toast('⚠️ هیچ محصولی انتخاب نشده'); return; }
-  let total = 0; const rows = [];
+  if(!selected.size){ toast('محصولی انتخاب نشده'); return; }
+  let total = 0, rows = [];
   selected.forEach((qty,i) => {
-    const p = products[i]; if(!p) return;
-    const u = p.unit || 'piece', line = p.price * qty; total += line;
-    rows.push(`<tr><td>${escapeHtml(p.name)}</td><td class="num">${fmtQty(u,qty)}</td><td>${unitLabel(u)}</td><td class="price">${fmtRial(line)}</td></tr>`);
+    const p = products[i]; const line = p.price*qty; total += line;
+    rows.push(`<tr><td>${escapeHtml(p.name)}</td><td>${fmtQty(p.unit,qty)}</td><td>${unitLabel(p.unit)}</td><td>${fmtRial(line)}</td></tr>`);
   });
-  const when = nowFa();
-  openModal(`<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${when}</p>
-    <table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table>
-    <div class="receipt-total"><span class="lbl">💰 جمع کل</span><span class="val">${fmtRial(total)} <small style="font-size:12px;">ریال</small></span></div>
-    <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">بستن</button><button class="receipt-print" onclick="window.print()">🖨 چاپ / ذخیره PDF</button></div>`);
+  openModal(`<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p>
+    <div class="receipt-table-wrapper">
+      <table class="receipt-table">
+        <thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead>
+        <tbody>${rows.join('')}</tbody>
+      </table>
+    </div>
+    <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>
+    <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">بستن</button><button class="receipt-print" onclick="window.print()">🖨 چاپ</button></div>`);
 }
-function openModal(html){
-  closeModal(); const m = document.createElement('div'); m.className = 'modal'; m.id = 'appModal';
-  m.onclick = e => { if(e.target === m) closeModal(); };
-  const c = document.createElement('div'); c.className = 'modal-card'; c.innerHTML = html;
-  m.appendChild(c); document.body.appendChild(m);
-}
+
+/* ================= مودال و ابزار ================= */
+function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
 function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
-function exportFile(){
-  if(products.length === 0){ toast('⚠️ لیست خالی است'); return; }
-  const data = {products,lastUpdate,exportedAt:new Date().toISOString()};
-  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'products-' + new Date().toISOString().slice(0,10) + '.json'; a.click(); toast('📤 فایل ذخیره شد');
+
+/* ================= ارسال / دریافت ================= */
+function showExportOptions(){
+  openModal(`<h3 class="modal-title">📤 ارسال لیست</h3>
+    <button class="btn btn-primary" onclick="closeModal(); exportQr()">▦ ساخت QR Code</button>
+    <button class="btn btn-secondary" onclick="closeModal(); exportFile()">📄 دریافت فایل JSON</button>
+    <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">لغو</button></div>`);
 }
+function showImportOptions(){
+  openModal(`<h3 class="modal-title">📥 دریافت لیست</h3>
+    <button class="btn btn-primary" onclick="closeModal(); startQrScan()">▦ اسکن QR Code</button>
+    <button class="btn btn-secondary" onclick="closeModal(); document.getElementById('importFile').click()">📄 انتخاب فایل JSON</button>
+    <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">لغو</button></div>`);
+}
+function exportFile(){
+  if(!products.length){ toast('لیست خالی است'); return; }
+  const blob = new Blob([JSON.stringify({products},null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'araz-market.json'; a.click();
+}
+function exportQr(){
+  if(!products.length) return toast('لیست خالی است');
+  const data = JSON.stringify({type:'araz',products});
+  if(typeof QRCode === 'undefined') return toast('کتابخانه QR لود نشد');
+  openModal(`<h3 class="modal-title">▦ اسکن کنید</h3><div id="qrBox" style="background:#fff;padding:10px;border-radius:10px;display:flex;justify-content:center"></div><div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">بستن</button></div>`);
+  new QRCode(document.getElementById('qrBox'), {text:data, width:220, height:220});
+}
+let qrScanner=null;
+async function startQrScan(){
+  if(typeof Html5Qrcode === 'undefined') return toast('اسکنر لود نشد');
+  openModal(`<h3 class="modal-title">اسکن QR</h3><div id="qrReader" style="width:100%; background:#000; border-radius:10px; overflow:hidden;"></div><div class="receipt-actions"><button class="receipt-close" onclick="stopQrScan()">لغو</button></div>`);
+  try{
+    qrScanner = new Html5Qrcode('qrReader');
+    await qrScanner.start({facingMode:'environment'}, {fps:10, qrbox:200}, decoded => { stopQrScan(); processImport(decoded, true); }, ()=>{});
+  }catch(e){ toast('دوربین در دسترس نیست'); }
+}
+async function stopQrScan(){ if(qrScanner){ try{ await qrScanner.stop(); qrScanner.clear(); }catch(e){} qrScanner=null; } closeModal(); }
+
+/* ================= DIFF (پیش‌نمایش تغییرات) ================= */
+function showDiffPreview(newList, mode, isQr){
+  let diffHtml = '';
+  let addCount = 0, removeCount = 0;
+  
+  if(mode === 'replace'){
+    products.forEach(p => {
+      if(!newList.find(n => n.name === p.name)){
+        diffHtml += `<div class="diff-remove">➖ حذف: ${escapeHtml(p.name)}</div>`;
+        removeCount++;
+      }
+    });
+  }
+  
+  newList.forEach(n => {
+    const old = products.find(p => p.name === n.name);
+    if(!old){
+      diffHtml += `<div class="diff-add">➕ اضافه: ${escapeHtml(n.name)} (${fmtRial(n.price)} ریال)</div>`;
+      addCount++;
+    } else if(old.price !== n.price || old.unit !== n.unit){
+      diffHtml += `<div class="diff-change">🔄 تغییر: ${escapeHtml(n.name)} (از ${fmtRial(old.price)} به ${fmtRial(n.price)})</div>`;
+    }
+  });
+
+  if(!diffHtml) diffHtml = '<div style="text-align:center;padding:10px;opacity:0.7;">هیچ تغییر جدیدی یافت نشد.</div>';
+  
+  openModal(`<h3 class="modal-title">پیش‌نمایش تغییرات</h3>
+    <p class="modal-sub">${mode==='replace'?'وضعیت جایگزینی لیست':'افزودن به لیست فعلی'}</p>
+    <div class="diff-box">${diffHtml}</div>
+    <div style="font-size:11px; text-align:center; margin-bottom:10px;">
+      (${addCount} اضافه شده، ${removeCount} حذف شده)
+    </div>
+    <button class="btn btn-primary" onclick="applyImport('${mode}', ${isQr})">✅ تایید و اعمال</button>
+    <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">لغو</button></div>
+  `);
+  window._tempNewList = newList;
+}
+
+function processImport(raw, isQr){
+  try{
+    let data = JSON.parse(raw);
+    let list = Array.isArray(data) ? data : data.products;
+    if(!Array.isArray(list)) throw 0;
+    list = list.filter(x => x && x.name && typeof x.price === 'number');
+    if(!list.length) throw 0;
+    
+    openModal(`<h3 class="modal-title">دریافت اطلاعات</h3>
+      <p class="modal-sub">نحوه اعمال لیست جدید چگونه باشد؟</p>
+      <button class="btn btn-primary" onclick="showDiffPreview(${JSON.stringify(list).replace(/"/g,'&quot;')}, 'replace', ${isQr})">🔄 جایگزینی کامل</button>
+      <button class="btn btn-secondary" onclick="showDiffPreview(${JSON.stringify(list).replace(/"/g,'&quot;')}, 'merge', ${isQr})">➕ افزودن به لیست</button>
+      <div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">لغو</button></div>
+    `);
+  }catch(e){ toast('اطلاعات معتبر نیست'); }
+}
+
+function applyImport(mode, isQr){
+  const newList = window._tempNewList;
+  if(mode === 'replace') products = newList;
+  else products = products.concat(newList);
+  
+  selected.clear(); save(); renderEdit(); renderSelect(); closeModal(); toast('✅ با موفقیت اعمال شد');
+}
+
+// فایل ورودی
 function importFile(e){
   const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      let data = JSON.parse(ev.target.result), list = Array.isArray(data) ? data : data.products;
-      if(!Array.isArray(list)) throw 0;
-      list = list.filter(x => x && x.name && typeof x.price === 'number').map(x => ({
-        name:x.name, price:x.price, unit:x.unit === 'kg' ? 'kg' : 'piece',
-        createdAt:x.createdAt || nowFa(), updatedAt:x.updatedAt || x.createdAt || nowFa(),
-        history:Array.isArray(x.history) ? x.history : [{when:x.createdAt || nowFa(),action:'ایمپورت',detail:'از فایل'}]
-      }));
-      if(list.length === 0) throw 0;
-      if(confirm('لیست فعلی جایگزین شود؟\n\nOK = جایگزینی\nCancel = افزودن به لیست')) products = list;
-      else products = products.concat(list);
-      selected.clear(); save(); renderEdit(); renderSelect(); toast('✅ ' + list.length + ' محصول ایمپورت شد');
-    } catch { toast('❌ فایل معتبر نیست'); }
-  };
+  reader.onload = ev => processImport(ev.target.result, false);
   reader.readAsText(file); e.target.value = '';
 }
+
 function init(){ updateTimes(); renderEdit(); renderSelect(); switchPage('edit'); }
-if(sessionStorage.getItem('logged') === '1'){
-  document.getElementById('lockScreen').classList.add('hidden');
-  document.getElementById('mainApp').classList.remove('hidden');
-  init();
-}
+if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScreen').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); init(); }
 </script>
 </body>
 </html>
