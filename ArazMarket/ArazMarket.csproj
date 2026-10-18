@@ -11,7 +11,9 @@
     <ApplicationId>ir.arazmarket.app</ApplicationId>
     <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
-    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+    
+    <!-- پشتیبانی از اندروید 9 (API 28) تا بالاترین نسخه -->
+    <SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
 
