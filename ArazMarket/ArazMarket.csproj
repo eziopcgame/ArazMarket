@@ -14,21 +14,20 @@
     <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <!-- 🔴 این خط برای پشتیبانی از اندروید 5 (API 21) به بالا تنظیم شده است -->
+    <!-- پشتیبانی از اندروید 5 به بالا -->
     <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
-    
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
 
-  <!-- این بخش برای رفع هشدارهای نسخه 9 دات‌نت الزامی است -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
   </ItemGroup>
 
-  <!-- تنظیمات منابع و آیکون‌ها -->
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\appicon.png" Color="#0B3D91" />
-    <MauiSplashScreen Include="Resources\AppIcon\appicon.png" Color="#0B3D91" BaseSize="128,128" />
+    <!-- آیکون برنامه -->
+    <MauiIcon Include="Resources\AppIcon\appicon.png" Color="#8A1538" />
+    <MauiSplashScreen Include="Resources\AppIcon\appicon.png" Color="#8A1538" BaseSize="128,128" />
+    <!-- لود کردن فایل HTML -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
