@@ -1,15 +1,4 @@
-بسیار خب، نگران نباشید. من همه‌چیز را کامل و قدم‌به‌قدم برایتان می‌نویسم. شما فقط کافیست فایل‌ها را جایگزین کنید.
-
-ما الان باید ۳ کار را انجام دهیم:
-1.  **کد HTML:** کاری کنیم که وقتی عکس می‌گیرد، فقط **جدول رسید** در عکس بیفتد (نه دکمه‌ها و نه پس‌زمینه).
-2.  **سابقه رسیدها:** کاری کنیم که وقتی روی «اشتراک‌گذاری» می‌زنید، بتواند عکس رسید قدیمی را هم بفرستد.
-3.  **کدهای C#:** که قبلاً فرستادم، برای اینکه پوشه ساخته شود و دوربین کار کند.
-
----
-
-### قدم ۱: فایل `index.html` (اصلاح عکس‌برداری و اشتراک سابقه)
-
-فقط کد زیر را کپی کنید و جایگزین کل فایل `index.html` کنید. من بخش‌های عکس‌برداری و سابقه را در آن اصلاح کردم:
+عذرخواهی می‌کنم. حق با شماست. این هم کد کامل و نهایی `index.html` با تمام تغییرات و اصلاحات:
 
 ```html
 <!DOCTYPE html>
@@ -139,7 +128,7 @@
   .chart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -10%); text-align: center; font-weight: 800; color: var(--text-black); }
   .chart-text .lbl { font-size: 12px; color: #666; font-weight: normal; display: block; margin-top: 4px; }
 
-  /* کلاس اختصاصی برای عکس‌برداری (دکمه‌ها را مخفی می‌کند) */
+  /* کلاس اختصاصی برای عکس‌برداری */
   .capture-mode .receipt-actions { display: none !important; }
   .capture-mode .modal-card { border: none !important; padding: 0 !important; }
 </style>
@@ -367,7 +356,6 @@ function renderProductSelector(){
 }
 function toggleSelectorItem(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderProductSelector(); renderSelect(); }
 
-/* ================= رسید (عکس و اشتراک) ================= */
 function showReceipt(){
   if(!selected.size){ toast('محصولی انتخاب نشده'); return; }
   let total = 0, rows = [], items = [];
@@ -390,26 +378,29 @@ function showReceipt(){
     </div>`);
 }
 
-// گرفتن عکس بدون دکمه‌ها با استفاده از کلاس capture-mode
-async function captureModalImage() {
-    const modalCard = document.querySelector('.modal-card');
-    modalCard.classList.add('capture-mode');
-    await new Promise(r => setTimeout(r, 100)); // صبر برای اعمال کلاس
+async function captureReceiptImage() {
+    const modal = document.querySelector('.modal-card');
+    if(!modal) return null;
+    
+    const buttonsContainer = modal.querySelector('.receipt-actions');
+    const originalDisplay = buttonsContainer ? buttonsContainer.style.display : '';
+    
+    if (buttonsContainer) buttonsContainer.style.display = 'none';
+    await new Promise(r => setTimeout(r, 150));
 
     try {
-        const canvas = await html2canvas(modalCard, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-        modalCard.classList.remove('capture-mode');
+        const canvas = await html2canvas(modal, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        if (buttonsContainer) buttonsContainer.style.display = originalDisplay;
         return canvas.toDataURL('image/jpeg', 0.9);
     } catch(e) {
-        modalCard.classList.remove('capture-mode');
+        if (buttonsContainer) buttonsContainer.style.display = originalDisplay;
         return null;
     }
 }
 
 async function saveReceiptAsImage() {
-    const base64Image = await captureModalImage();
+    const base64Image = await captureReceiptImage();
     if(!base64Image) { toast('❌ خطا در ساخت عکس'); return; }
-
     if (window.CSharpBridge && window.CSharpBridge.SaveImage) {
       const base64Data = base64Image.split(',')[1];
       window.CSharpBridge.SaveImage(base64Data);
@@ -421,9 +412,8 @@ async function saveReceiptAsImage() {
 }
 
 async function shareReceiptAsImage() {
-    const base64Image = await captureModalImage();
+    const base64Image = await captureReceiptImage();
     if(!base64Image) { toast('❌ خطا در ساخت عکس'); return; }
-
     if (window.CSharpBridge && window.CSharpBridge.ShareImage) {
       const base64Data = base64Image.split(',')[1];
       window.CSharpBridge.ShareImage(base64Data);
@@ -446,7 +436,6 @@ function saveReceiptToHistory() {
   switchPage('history');
 }
 
-/* ================= سابقه رسیدها ================= */
 function renderHistory(){
   const list = document.getElementById('historyList');
   if(!history.length){ list.innerHTML = '<div class="card" style="text-align:center; color:#666;">هیچ رسیدی ثبت نشده است.</div>'; return; }
@@ -474,7 +463,8 @@ function showHistoryDetails(id) {
     <div class="receipt-actions">
       <button class="receipt-close" onclick="closeModal()">بستن</button>
       <button class="receipt-print" onclick="shareHistoryReceiptText('${h.id}')">🔗 اشتراک متن</button>
-      <button class="receipt-print" onclick="shareHistoryReceiptImage('${h.id}')">🖼️ اشتراک عکس</button>
+      <button class="receipt-print" onclick="saveHistoryReceiptImage('${h.id}')">🖼️ ذخیره عکس</button>
+      <button class="receipt-print" onclick="shareHistoryReceiptImage('${h.id}')">🔗 اشتراک عکس</button>
     </div>`);
 }
 
@@ -486,15 +476,26 @@ function shareHistoryReceiptText(id) {
     text += `${item.name} | ${fmtQty(item.unit, item.qty)} ${unitLabel(item.unit)} | ${fmtRial(item.line)} ریال\n`;
   });
   text += `\nجمع کل: ${fmtRial(h.total)} ریال`;
-  
   if (navigator.share) navigator.share({ title: 'رسید فروش', text: text }).catch(console.error);
   else toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
 }
 
-async function shareHistoryReceiptImage(id) {
-  const base64Image = await captureModalImage();
+async function saveHistoryReceiptImage(id) {
+  const base64Image = await captureReceiptImage();
   if(!base64Image) { toast('❌ خطا در ساخت عکس'); return; }
+  if (window.CSharpBridge && window.CSharpBridge.SaveImage) {
+    const base64Data = base64Image.split(',')[1];
+    window.CSharpBridge.SaveImage(base64Data);
+    toast('✅ عکس در حافظه ذخیره شد');
+  } else {
+    const link = document.createElement('a'); link.href = base64Image; link.download = 'receipt.jpg'; link.click();
+    toast('✅ عکس دانلود شد');
+  }
+}
 
+async function shareHistoryReceiptImage(id) {
+  const base64Image = await captureReceiptImage();
+  if(!base64Image) { toast('❌ خطا در ساخت عکس'); return; }
   if (window.CSharpBridge && window.CSharpBridge.ShareImage) {
     const base64Data = base64Image.split(',')[1];
     window.CSharpBridge.ShareImage(base64Data);
@@ -504,33 +505,24 @@ async function shareHistoryReceiptImage(id) {
   }
 }
 
-/* ================= گزارش مالی ================= */
 function renderReport() {
   let totalSales = 0;
   let totalPurchase = 0;
-  
   history.forEach(h => {
     h.items.forEach(item => {
       totalSales += item.line;
       const p = products.find(x => x.name === item.name);
-      if(p && p.purchasePrice) {
-        totalPurchase += (p.purchasePrice * item.qty);
-      }
+      if(p && p.purchasePrice) totalPurchase += (p.purchasePrice * item.qty);
     });
   });
-
   const profit = totalSales - totalPurchase;
   const profitPercent = totalSales > 0 ? Math.min(100, Math.round((profit / totalSales) * 100)) : 0;
-
   document.getElementById('totalSales').textContent = fmtRial(totalSales) + ' ریال';
   document.getElementById('totalPurchase').textContent = fmtRial(totalPurchase) + ' ریال';
   document.getElementById('totalProfit').textContent = 'سود خالص: ' + fmtRial(profit) + ' ریال';
-  
   document.getElementById('chartValue').textContent = profitPercent + '%';
-  
   const offset = 314 - (314 * (profitPercent / 100));
   document.getElementById('chartFill').style.strokeDashoffset = offset;
-  
   document.getElementById('chartFill').style.stroke = profitPercent < 0 ? '#E74C3C' : 'var(--purple-main)';
 }
 
@@ -549,11 +541,9 @@ function downloadPdfReport() {
     });
 }
 
-/* ================= ابزارها ================= */
 function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
 function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
 
-/* ================= ارسال و دریافت ================= */
 function showExportOptions(){
   openModal(`<h3 class="modal-title">📤 ارسال لیست</h3>
     <button class="btn btn-primary" onclick="closeModal(); exportQr()">▦ ساخت QR Code</button>
@@ -583,9 +573,8 @@ function exportFile(){
 function shareFile(){
   if(!products.length){ toast('لیست خالی است'); return; }
   const data = JSON.stringify({products},null,2);
-  if (navigator.share) {
-    navigator.share({ title: 'لیست محصولات آراز مارکت', text: data }).catch(console.error);
-  } else { toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود'); }
+  if (navigator.share) navigator.share({ title: 'لیست محصولات آراز مارکت', text: data }).catch(console.error);
+  else toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
 }
 
 function exportQr(){
