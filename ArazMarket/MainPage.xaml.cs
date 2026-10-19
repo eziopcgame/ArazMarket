@@ -2,10 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ArazMarket;
 
-// 🟢 این خطوط به لینکر (Linker) می‌گن که کدهای پل C# رو حذف نکنه
-[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.CSharpBridge))]
-[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.MyWebChromeClient))]
-[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.MyDownloadListener))]
 public partial class MainPage : ContentPage
 {
     public MainPage()
@@ -13,6 +9,10 @@ public partial class MainPage : ContentPage
         InitializeComponent();
     }
 
+    // 🟢 ویژگی‌ها را از روی کلاس برداشتیم و روی این متد گذاشتیم
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.CSharpBridge))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.MyWebChromeClient))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.MyDownloadListener))]
     protected override void OnAppearing()
     {
         base.OnAppearing();
