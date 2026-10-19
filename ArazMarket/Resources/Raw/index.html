@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#FFFFFF">
 <title>آراز مارکت</title>
 <style>
   :root {
@@ -21,7 +20,8 @@
     color: var(--text-black);
     min-height: 100vh;
     padding: 0 0 90px 0;
-    transition: all 0.3s ease;
+    /* ⬇️ رفع مشکل شناور بودن منو: محتوا روی منو نیفتد */
+    position: relative;
   }
   .hidden { display: none !important; }
 
@@ -112,11 +112,19 @@
   .total-card { background: var(--purple-light); margin: 0 14px 10px; border-radius: 18px; padding: 14px 16px; display: flex; justify-content: space-between; border: 1.5px solid var(--purple-main); color: var(--text-black); }
   .total-card .val { font-size: 18px; font-weight: 800; }
 
-  /* Bottom Nav */
+  /* Bottom Nav - فیکس شده در پایین */
   .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-white);
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 6px; border-top: 1.5px solid var(--purple-main);
-    z-index: 50;
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    background: var(--bg-white);
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); 
+    display: flex; 
+    gap: 6px; 
+    border-top: 1.5px solid var(--purple-main);
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
   }
   .bottom-nav button {
     flex: 1; border: none; padding: 10px 4px; border-radius: 14px; font-size: 11px; font-weight: 700; font-family: inherit; color: var(--text-black);
@@ -157,22 +165,17 @@
 </div>
 
 <div id="mainApp" class="hidden">
-  
-  <!-- ================= صفحه ثبت محصول ================= -->
   <div id="pageEdit">
     <div class="header"><h1>📝 ثبت محصولات</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
-    
     <div class="top-actions">
       <button onclick="showExportOptions()">📤 ارسال</button>
       <button onclick="showImportOptions()">📥 دریافت</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importFile(event)">
     </div>
-
     <div class="update-bar clickable" onclick="forceUpdate()">
       <span>⬇️</span><span id="updateTime">—</span><span>⬆️</span>
     </div>
-
     <div class="card">
       <div class="field"><span>📦</span><input id="name" placeholder="نام محصول" onfocus="window.scrollTo(0,0)"></div>
       <div class="field"><span>💰</span><input id="price" type="number" inputmode="numeric" placeholder="قیمت فروش (ریال)"></div>
@@ -184,72 +187,55 @@
       <button class="btn btn-primary" id="submitBtn" onclick="submitProduct()">➕ افزودن محصول</button>
       <button class="btn btn-secondary hidden" id="cancelEditBtn" onclick="cancelEdit()">لغو ویرایش</button>
     </div>
-
     <div class="search-box"><span>🔍</span><input id="search" placeholder="جستجوی محصول..." oninput="renderEdit()"></div>
     <div class="list-title">لیست محصولات <span id="count">0</span></div>
     <div id="listEdit"></div>
   </div>
 
-  <!-- ================= صفحه محاسبه ================= -->
   <div id="pageSelect" class="hidden">
     <div class="header"><h1>🧮 محاسبه و رسید</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
-    
     <div class="update-bar"><span id="updateTime2">—</span></div>
-    
     <button class="btn btn-secondary" style="margin: 0 14px 10px; width: calc(100% - 28px);" onclick="showProductSelector()">🔍 انتخاب از میان محصولات</button>
-    
     <button class="btn btn-primary" style="margin: 0 14px 10px; width: calc(100% - 28px);" onclick="showReceipt()">🧾 ساخت رسید</button>
-
     <div class="total-card"><span>💰 مجموع</span><span class="val"><span id="totalSelect">۰</span> ریال</span></div>
     <div class="total-card"><span>📦 تعداد اقلام</span><span class="val"><span id="countSelected">۰</span> مورد</span></div>
-
     <button class="btn btn-danger" style="margin: 0 14px 15px; width: calc(100% - 28px);" onclick="selectAll(false)">✕ حذف همه انتخاب‌ها</button>
-
     <div id="selectedProductsContainer">
       <div class="list-title" style="margin-top: 5px;">محصولات انتخاب شده <span id="countSelect">0</span></div>
       <div id="listSelect"></div>
     </div>
   </div>
 
-  <!-- ================= صفحه سابقه رسید ================= -->
   <div id="pageHistory" class="hidden">
     <div class="header"><h1>🕒 سابقه رسیدها</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
-    <div class="card" style="text-align: center;">
-      <p style="color:#666;">لیست رسیدهای ذخیره شده در اینجا نمایش داده می‌شود.</p>
-    </div>
+    <div class="card" style="text-align: center;"><p style="color:#666;">لیست رسیدهای ذخیره شده در اینجا نمایش داده می‌شود.</p></div>
   </div>
 
-  <!-- ================= صفحه گزارش (سود/ضرر) ================= -->
   <div id="pageReport" class="hidden">
     <div class="header"><h1>📊 گزارش مالی</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
     <div class="card">
       <p style="text-align:center; color:red; font-size:12px;">⚠️ توجه: گزارش فقط برای ۲ ماه اخیر قابل نمایش است.</p>
       <div style="text-align:center; margin: 20px 0;">
-        <div style="width: 200px; height: 100px; border-radius: 100px 100px 0 0; background: linear-gradient(90deg, #6C5CE7 50%, #ddd 50%); margin: 0 auto; position: relative; overflow: hidden;">
-            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: #fff;"></div>
-        </div>
+        <div style="width: 200px; height: 100px; border-radius: 100px 100px 0 0; background: linear-gradient(90deg, #6C5CE7 50%, #ddd 50%); margin: 0 auto; position: relative; overflow: hidden;"><div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: #fff;"></div></div>
         <p>نمودار سود و ضرر (نمایشی)</p>
       </div>
       <button class="btn btn-primary" onclick="downloadPdfReport()">🖨 چاپ گزارش</button>
     </div>
   </div>
 
-  <!-- ================= منوی پایین ================= -->
   <div class="bottom-nav">
     <button id="navEditBtn" class="active" onclick="switchPage('edit')">📝 ثبت محصول</button>
     <button id="navSelectBtn" onclick="switchPage('select')">🧮 محاسبه</button>
     <button id="navHistoryBtn" onclick="switchPage('history')">🕒 سابقه رسید</button>
     <button id="navReportBtn" onclick="switchPage('report')">📊 سود و ضرر</button>
   </div>
-
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- لود کردن کتابخانه‌های محلی -->
 <script src="html5-qrcode.min.js"></script>
 <script src="html2pdf.bundle.min.js"></script>
 
@@ -283,30 +269,21 @@ function fmtRial(n){ return Number(n).toLocaleString('en-US'); }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function unitLabel(u){ return u === 'kg' ? 'کیلوگرم' : 'عدد'; }
 function fmtQty(u, q){ return u === 'kg' ? Number(q).toLocaleString('en-US', {maximumFractionDigits:2}) : Math.round(q).toLocaleString('en-US'); }
-function setUnit(u){
-  currentUnit = u;
-  document.getElementById('unitPieceLbl').classList.toggle('active', u === 'piece');
-  document.getElementById('unitKgLbl').classList.toggle('active', u === 'kg');
-}
+function setUnit(u){ currentUnit = u; document.getElementById('unitPieceLbl').classList.toggle('active', u === 'piece'); document.getElementById('unitKgLbl').classList.toggle('active', u === 'kg'); }
 
 function switchPage(page){
   document.querySelectorAll('[id^="page"]').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.bottom-nav button').forEach(el => el.classList.remove('active'));
-  
   document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1)).classList.remove('hidden');
   document.getElementById('nav' + page.charAt(0).toUpperCase() + page.slice(1) + 'Btn').classList.add('active');
-  
   window.scrollTo(0,0);
-  if(page === 'edit') renderEdit(); 
-  else if(page === 'select') renderSelect();
+  if(page === 'edit') renderEdit(); else if(page === 'select') renderSelect();
 }
 
-/* ================= ثبت محصول ================= */
 function submitProduct(){
   const nameEl = document.getElementById('name'), priceEl = document.getElementById('price'), purchaseEl = document.getElementById('purchasePrice');
   const name = nameEl.value.trim(), price = priceEl.value.trim(), purchase = purchaseEl.value.trim();
   if(!name || !price){ toast('⚠️ نام و قیمت فروش را وارد کنید'); return; }
-  
   if(editingIndex >= 0){
     const old = products[editingIndex];
     products[editingIndex] = {...old, name, price:Number(price), purchasePrice: Number(purchase||0), unit:currentUnit, updatedAt:nowFa()};
@@ -342,100 +319,46 @@ function renderEdit(){
         <div class="meta">${unitLabel(p.unit)} | ${escapeHtml(p.updatedAt)}</div>
         <div class="price">${fmtRial(p.price)} ریال</div>
       </div>
-      <div class="actions">
-        <button class="btn-icon" onclick="editProduct(${i})">✏️</button>
-      </div>
+      <div class="actions"><button class="btn-icon" onclick="editProduct(${i})">✏️</button></div>
     </div>`).join('');
 }
 
-/* ================= محاسبه ================= */
 function renderSelect(){
-  const list = document.getElementById('listSelect');
-  const countEl = document.getElementById('countSelect');
+  const list = document.getElementById('listSelect'), countEl = document.getElementById('countSelect');
   if(selected.size === 0) {
     list.innerHTML = ''; countEl.textContent = '0';
     document.querySelector('#selectedProductsContainer .list-title').style.display = 'none';
     updateTotals(); return;
   } else { document.querySelector('#selectedProductsContainer .list-title').style.display = 'flex'; }
-
   let html = '';
   selected.forEach((qty, i) => {
     const p = products[i]; if(!p) return;
     html += `<div class="product selected">
       <div class="check">✓</div>
       <div class="info"><div class="name">${escapeHtml(p.name)}</div><div class="price">${fmtRial(p.price)} ریال</div></div>
-      <div class="qty-control">
-        <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
-        <input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)">
-        <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
-      </div>
+      <div class="qty-control"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button><input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)"><button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>
       <button class="btn-icon" style="background: #ffebee; color: #c62828; border-color: #c62828;" onclick="toggleSelect(${i})">✕</button>
     </div>`;
   });
   list.innerHTML = html; countEl.textContent = selected.size; updateTotals();
 }
 function toggleSelect(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderSelect(); }
-
-function changeQty(i, d){
-  if(!selected.has(i)) return;
-  let v = Number(selected.get(i)) + d;
-  const unit = products[i].unit || 'piece';
-  if(unit === 'kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; }
-  else { if(v<1)v=1; v=Math.round(v); }
-  selected.set(i,v); 
-  renderSelect();
-  if(document.getElementById('appModal') && document.getElementById('searchInModal')) { renderProductSelector(); }
-}
-function setQty(i, raw){
-  if(!selected.has(i)) return;
-  let v = Number(raw); if(isNaN(v))v=1;
-  const unit = products[i].unit || 'piece';
-  if(unit === 'kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; }
-  else { if(v<1)v=1; v=Math.round(v); }
-  selected.set(i,v); 
-  renderSelect();
-  if(document.getElementById('appModal') && document.getElementById('searchInModal')) { renderProductSelector(); }
-}
-
+function changeQty(i, d){ if(!selected.has(i)) return; let v = Number(selected.get(i)) + d; if(products[i].unit==='kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; } else { if(v<1)v=1; v=Math.round(v); } selected.set(i,v); renderSelect(); if(document.getElementById('appModal')) { renderProductSelector(); } }
+function setQty(i, raw){ if(!selected.has(i)) return; let v = Number(raw); if(isNaN(v))v=1; if(products[i].unit==='kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; } else { if(v<1)v=1; v=Math.round(v); } selected.set(i,v); renderSelect(); if(document.getElementById('appModal')) { renderProductSelector(); } }
 function selectAll(on){ if(on) products.forEach((_,i) => selected.set(i,1)); else selected.clear(); renderSelect(); }
-function updateTotals(){
-  let t=0, c=0;
-  selected.forEach((q,i) => { if(products[i]){ t += products[i].price*q; c++; } });
-  document.getElementById('totalSelect').textContent = fmtRial(t);
-  document.getElementById('countSelected').textContent = c;
-}
+function updateTotals(){ let t=0, c=0; selected.forEach((q,i) => { if(products[i]){ t += products[i].price*q; c++; } }); document.getElementById('totalSelect').textContent = fmtRial(t); document.getElementById('countSelected').textContent = c; }
 
 function showProductSelector(){
-  openModal(`
-    <h3 class="modal-title">انتخاب محصولات</h3>
-    <div style="display: flex; gap: 8px; margin: 0 0 10px 0;">
-      <div class="search-box" style="margin: 0; flex: 1; padding: 0 10px;">
-        <span>🔍</span>
-        <input id="searchInModal" placeholder="جستجو..." oninput="renderProductSelector()" autofocus="false">
-      </div>
-      <button class="btn btn-secondary" style="margin: 0; width: auto; padding: 0 15px; font-size: 13px;" onclick="closeModal()">بستن</button>
-    </div>
-    <div id="selectorList" style="flex: 1; overflow-y: auto; min-height: 200px; max-height: 50vh;"></div>
-  `);
+  openModal(`<h3 class="modal-title">انتخاب محصولات</h3><div style="display: flex; gap: 8px; margin: 0 0 10px 0;"><div class="search-box" style="margin: 0; flex: 1; padding: 0 10px;"><span>🔍</span><input id="searchInModal" placeholder="جستجو..." oninput="renderProductSelector()"></div><button class="btn btn-secondary" style="margin: 0; width: auto; padding: 0 15px; font-size: 13px;" onclick="closeModal()">بستن</button></div><div id="selectorList" style="flex: 1; overflow-y: auto; min-height: 200px; max-height: 50vh;"></div>`);
   setTimeout(() => { renderProductSelector(); }, 100);
 }
-
 function renderProductSelector(){
-  const q = document.getElementById('searchInModal').value.trim().toLowerCase();
-  const listEl = document.getElementById('selectorList');
+  const q = document.getElementById('searchInModal').value.trim().toLowerCase(), listEl = document.getElementById('selectorList');
   const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
   if(!filtered.length) { listEl.innerHTML = '<div style="text-align:center; padding:20px;">محصولی یافت نشد</div>'; return; }
   listEl.innerHTML = filtered.map(({p, i}) => {
     const isSelected = selected.has(i), qty = selected.get(i) || 1;
-    return `<div class="product ${isSelected ? 'selected' : ''}" style="margin: 0 0 8px 0;">
-      <div class="check" onclick="toggleSelectorItem(${i})">${isSelected ? '✓' : ''}</div>
-      <div class="info" onclick="toggleSelectorItem(${i})"><div class="name">${escapeHtml(p.name)}</div><div class="price">${fmtRial(p.price)} ریال</div></div>
-      ${isSelected ? `<div class="qty-control">
-        <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
-        <input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)">
-        <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
-      </div>` : ''}
-    </div>`;
+    return `<div class="product ${isSelected ? 'selected' : ''}" style="margin: 0 0 8px 0;"><div class="check" onclick="toggleSelectorItem(${i})">${isSelected ? '✓' : ''}</div><div class="info" onclick="toggleSelectorItem(${i})"><div class="name">${escapeHtml(p.name)}</div><div class="price">${fmtRial(p.price)} ریال</div></div>${isSelected ? `<div class="qty-control"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button><input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)"><button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>` : ''}</div>`;
   }).join('');
 }
 function toggleSelectorItem(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderProductSelector(); renderSelect(); }
@@ -443,61 +366,48 @@ function toggleSelectorItem(i){ if(selected.has(i)) selected.delete(i); else sel
 function showReceipt(){
   if(!selected.size){ toast('محصولی انتخاب نشده'); return; }
   let total = 0, rows = [];
-  selected.forEach((qty,i) => {
-    const p = products[i]; const line = p.price*qty; total += line;
-    rows.push(`<tr><td>${escapeHtml(p.name)}</td><td>${fmtQty(p.unit,qty)}</td><td>${unitLabel(p.unit)}</td><td>${fmtRial(line)}</td></tr>`);
-  });
-  const receiptHtml = `<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p>
-    <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
-    <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>`;
-  openModal(receiptHtml + `
-    <div class="receipt-actions">
-      <button class="receipt-close" onclick="closeModal()">بستن</button>
-      <button class="receipt-print" onclick="downloadPdf()">🖨 ذخیره PDF</button>
-      <button class="receipt-print" onclick="saveReceiptToFile()">💾 ذخیره</button>
-    </div>`);
+  selected.forEach((qty,i) => { const p = products[i]; const line = p.price*qty; total += line; rows.push(`<tr><td>${escapeHtml(p.name)}</td><td>${fmtQty(p.unit,qty)}</td><td>${unitLabel(p.unit)}</td><td>${fmtRial(line)}</td></tr>`); });
+  const receiptHtml = `<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p><div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table></div><div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>`;
+  openModal(receiptHtml + `<div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">بستن</button><button class="receipt-print" onclick="downloadPdf()">🖨 ذخیره PDF</button><button class="receipt-print" onclick="saveReceiptToFile()">💾 ذخیره</button></div>`);
 }
 
-/* ================= ساخت PDF آفلاین ================= */
 function downloadPdf() {
     const element = document.querySelector('.modal-card');
-    const opt = {
-        margin: 0.5,
-        filename: 'receipt-' + new Date().toISOString().slice(0,10) + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
+    const opt = { margin: 0.5, filename: 'receipt-' + new Date().toISOString().slice(0,10) + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
     html2pdf().set(opt).from(element).save();
-    toast('✅ PDF ذخیره شد');
+    toast('✅ PDF در پوشه دانلود ذخیره شد');
 }
 
 function downloadPdfReport() {
     const element = document.querySelector('#pageReport .card');
-    const opt = {
-        margin: 0.5,
-        filename: 'report-' + new Date().toISOString().slice(0,10) + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
+    const opt = { margin: 0.5, filename: 'report-' + new Date().toISOString().slice(0,10) + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
     html2pdf().set(opt).from(element).save();
     toast('✅ گزارش ذخیره شد');
 }
 
-/* ================= ذخیره رسید از طریق C# ================= */
 function saveReceiptToFile(){
-  if(!window.CSharpBridge || !window.CSharpBridge.SaveReceipt) {
-    toast('در مرورگر نمیتوان ذخیره کرد');
-    return;
-  }
+  if(!window.CSharpBridge || !window.CSharpBridge.SaveReceipt) { toast('خطا: پل ارتباطی در دسترس نیست'); return; }
   let receiptText = "رسید فروش - " + nowFa() + "\n";
   selected.forEach((qty,i) => { const p = products[i]; receiptText += p.name + " | " + qty + " | " + p.price + "\n"; });
   window.CSharpBridge.SaveReceipt(receiptText);
   toast('✅ رسید در حافظه ذخیره شد');
 }
 
-/* ================= ابزارها ================= */
+function exportFile(){
+  if(!products.length){ toast('لیست خالی است'); return; }
+  const blob = new Blob([JSON.stringify({products},null,2)],{type:'application/json'});
+  if(window.CSharpBridge && window.CSharpBridge.SaveFile){
+    const reader = new FileReader();
+    reader.onload = e => { window.CSharpBridge.SaveFile('araz-market.json', e.target.result); toast('✅ لیست ذخیره شد'); };
+    reader.readAsDataURL(blob);
+  } else {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'araz-market.json'; a.click();
+  }
+}
+
+function importFile(e){ const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = ev => processImport(ev.target.result, false); reader.readAsText(file); e.target.value = ''; }
+function processImport(raw, isQr){ try{ let data = JSON.parse(raw), list = Array.isArray(data) ? data : data.products; if(!Array.isArray(list)) throw 0; list = list.filter(x => x && x.name && typeof x.price === 'number'); if(!list.length) throw 0; if(confirm('لیست فعلی جایگزین شود؟')) products = list; else products = products.concat(list); selected.clear(); save(); renderEdit(); renderSelect(); toast('✅ ایمپورت شد'); } catch(e){ toast('❌ فایل معتبر نیست'); } }
+
 function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
 function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
 
