@@ -14,24 +14,27 @@
     <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <!-- حداقل نسخه اندروید 5 (API 21) -->
+    <!-- پشتیبانی از اندروید 5 (API 21) به بالا -->
     <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
 
+    <!-- 📱 معماری‌های پشتیبانی‌شده (برای ساخت دو APK جداگانه) -->
+    <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
+
     <!-- ================= تنظیمات فشرده‌سازی و کاهش حجم ================= -->
     <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>full</TrimMode>
+    <TrimMode>partial</TrimMode> <!-- فعلاً partial برای امنیت؛ بعداً می‌توانی full کنی -->
     <AndroidLinkTool>r8</AndroidLinkTool>
     <AndroidEnableResourceShrinking>true</AndroidEnableResourceShrinking>
     <AndroidEnableAssemblyCompression>true</AndroidEnableAssemblyCompression>
     
-    <!-- بهینه‌سازی‌های اضافی برای کاهش بیشتر حجم -->
+    <!-- بهینه‌سازی‌های اضافی -->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <RunAOTCompilation>false</RunAOTCompilation>
     <AndroidUseAapt2>true</AndroidUseAapt2>
   </PropertyGroup>
 
-  <!-- باید به صورت دستی فایل‌های C# رو به کامپایلر معرفی کنیم چون EnableDefaultCompileItems=false کردیم -->
+  <!-- معرفی دستی فایل‌های C# -->
   <ItemGroup>
     <Compile Include="**/*.cs" Exclude="bin/**;obj/**" />
   </ItemGroup>
@@ -41,8 +44,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- آیکون برنامه -->
     <MauiIcon Include="Resources\Raw\AppIcon\appicon.png" Color="#0647B8" />
+    
+    <!-- اسپلش اسکرین -->
     <MauiSplashScreen Include="Resources\Raw\AppIcon\appicon.png" Color="#0647B8" BaseSize="128,128" />
+    
+    <!-- منابع HTML و کتابخانه‌ها -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
