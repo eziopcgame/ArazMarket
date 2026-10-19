@@ -1,3 +1,8 @@
+بسیار خب. این هم فایل `index.html` کامل و نهایی، با حذف دکمه «ذخیره متن» و نگه داشتن فقط دکمه‌های «ذخیره PDF» و «اشتراک PDF». بقیه فایل‌های C# و تنظیمات همون‌هایی هستن که در پیام قبلی فرستادم و نیازی به تغییر ندارن.
+
+فقط کافیه این کد رو کپی کنی و جایگزین کل محتوای فایل `index.html` کنی:
+
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -360,7 +365,6 @@ function showReceipt(){
       <button class="receipt-close" onclick="closeModal()">بستن</button>
       <button class="receipt-print" onclick="downloadPdf()">💾 ذخیره PDF</button>
       <button class="receipt-print" onclick="sharePdf()">🔗 اشتراک PDF</button>
-      <button class="receipt-print" onclick="saveReceiptToFile()">📄 ذخیره متن</button>
     </div>`);
 }
 
@@ -453,7 +457,7 @@ function importFile(e){
   reader.readAsText(file); e.target.value = '';
 }
 
-/* ================= PDF و اشتراک رسید ================= */
+/* ================= PDF ================= */
 async function generatePdf() {
     const element = document.querySelector('.modal-card');
     const opt = { margin: 0.5, filename: 'receipt.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
@@ -493,14 +497,6 @@ function downloadPdfReport() {
     toast('✅ گزارش ذخیره شد');
 }
 
-function saveReceiptToFile(){
-  if(!window.CSharpBridge || !window.CSharpBridge.SaveReceipt) { toast('خطا: پل ارتباطی در دسترس نیست'); return; }
-  let receiptText = "رسید فروش - " + nowFa() + "\n";
-  selected.forEach((qty,i) => { const p = products[i]; receiptText += p.name + " | " + qty + " | " + p.price + "\n"; });
-  window.CSharpBridge.SaveReceipt(receiptText);
-  toast('✅ رسید در حافظه ذخیره شد');
-}
-
 function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
 function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
 
@@ -509,3 +505,4 @@ if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScree
 </script>
 </body>
 </html>
+```
