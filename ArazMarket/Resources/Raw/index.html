@@ -1,6 +1,3 @@
-عذرخواهی می‌کنم. حق با شماست. این هم کد کامل و نهایی `index.html` با تمام تغییرات و اصلاحات:
-
-```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -131,6 +128,11 @@
   /* کلاس اختصاصی برای عکس‌برداری */
   .capture-mode .receipt-actions { display: none !important; }
   .capture-mode .modal-card { border: none !important; padding: 0 !important; }
+
+  /* استایل جدول گزارش برای خروجی PDF */
+  .report-pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+  .report-pdf-table th, .report-pdf-table td { border: 1px solid #000; padding: 8px; text-align: right; }
+  .report-pdf-table th { background: #eee; }
 </style>
 </head>
 <body>
@@ -196,7 +198,7 @@
   <div id="pageReport" class="hidden">
     <div class="header"><h1>📊 گزارش مالی</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
-    <div class="card">
+    <div class="card" id="reportCard">
       <p style="text-align:center; color:red; font-size:12px;">⚠️ توجه: گزارش فقط برای ۲ ماه اخیر قابل نمایش است.</p>
       <div class="chart-container">
         <svg class="chart-svg" viewBox="0 0 250 125">
@@ -213,7 +215,13 @@
         <div><span style="color:#666;">کل خرید:</span> <b id="totalPurchase">۰ ریال</b></div>
       </div>
       <div style="text-align:center; margin-top:10px; font-size:16px; font-weight:800; color:var(--purple-dark);" id="totalProfit">سود خالص: ۰ ریال</div>
-      <button class="btn btn-primary" style="margin-top:20px;" onclick="downloadPdfReport()">🖨 چاپ گزارش</button>
+      
+      <div id="topSellingContainer" style="margin-top:20px; border-top:1px solid #ddd; padding-top:10px;">
+        <h4 style="margin:0 0 10px 0; font-size:14px;">🔥 پرفروش‌ترین اقلام:</h4>
+        <ul id="topSellingList" style="margin:0; padding-right:20px; font-size:13px;"></ul>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:20px;" onclick="downloadPdfReport()">🖨 دانلود PDF</button>
     </div>
   </div>
 
@@ -505,40 +513,117 @@ async function shareHistoryReceiptImage(id) {
   }
 }
 
+/* ================= گزارش مالی و PDF ================= */
 function renderReport() {
   let totalSales = 0;
   let totalPurchase = 0;
+  let itemsCount = {};
+
   history.forEach(h => {
     h.items.forEach(item => {
       totalSales += item.line;
+      if(!itemsCount[item.name]) itemsCount[item.name] = 0;
+      itemsCount[item.name] += item.qty;
+
       const p = products.find(x => x.name === item.name);
       if(p && p.purchasePrice) totalPurchase += (p.purchasePrice * item.qty);
     });
   });
+
   const profit = totalSales - totalPurchase;
   const profitPercent = totalSales > 0 ? Math.min(100, Math.round((profit / totalSales) * 100)) : 0;
+
   document.getElementById('totalSales').textContent = fmtRial(totalSales) + ' ریال';
   document.getElementById('totalPurchase').textContent = fmtRial(totalPurchase) + ' ریال';
   document.getElementById('totalProfit').textContent = 'سود خالص: ' + fmtRial(profit) + ' ریال';
   document.getElementById('chartValue').textContent = profitPercent + '%';
+  
   const offset = 314 - (314 * (profitPercent / 100));
   document.getElementById('chartFill').style.strokeDashoffset = offset;
   document.getElementById('chartFill').style.stroke = profitPercent < 0 ? '#E74C3C' : 'var(--purple-main)';
+
+  // محاسبه پرفروش‌ترین اقلام
+  let sortedItems = Object.keys(itemsCount).map(name => ({name, qty: itemsCount[name]})).sort((a,b) => b.qty - a.qty);
+  let topList = document.getElementById('topSellingList');
+  if(sortedItems.length === 0) {
+    topList.innerHTML = '<li>اطلاعاتی موجود نیست</li>';
+  } else {
+    topList.innerHTML = sortedItems.slice(0, 3).map(item => `<li>${escapeHtml(item.name)} (${fmtQty('piece', item.qty)} عدد)</li>`).join('');
+  }
 }
 
 function downloadPdfReport() {
-    const { jsPDF } = window.jspdf;
-    const element = document.querySelector('#pageReport .card');
-    html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('report.pdf');
-        toast('✅ گزارش ذخیره شد');
+  let totalSales = 0;
+  let totalPurchase = 0;
+  let itemsCount = {};
+
+  history.forEach(h => {
+    h.items.forEach(item => {
+      totalSales += item.line;
+      if(!itemsCount[item.name]) itemsCount[item.name] = 0;
+      itemsCount[item.name] += item.qty;
+      const p = products.find(x => x.name === item.name);
+      if(p && p.purchasePrice) totalPurchase += (p.purchasePrice * item.qty);
     });
+  });
+
+  const profit = totalSales - totalPurchase;
+  let sortedItems = Object.keys(itemsCount).map(name => ({name, qty: itemsCount[name]})).sort((a,b) => b.qty - a.qty);
+  let topItemsText = sortedItems.slice(0, 3).map(item => `${item.name} (${item.qty})`).join(' - ');
+  if(!topItemsText) topItemsText = 'اطلاعاتی نیست';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  // ساخت جدول سیاه و سفید
+  let htmlContent = `
+    <div style="font-family: Tahoma, sans-serif; direction: rtl; text-align: right; width: 100%; padding: 20px;">
+      <h2 style="text-align: center; color: black; margin-bottom: 20px;">گزارش مالی آراز مارکت</h2>
+      <p style="text-align: center; font-size: 12px; color: #555;">تاریخ گزارش: ${nowFa()}</p>
+      
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
+        <tr>
+          <th style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">شرح</th>
+          <th style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">مبلغ (ریال)</th>
+        </tr>
+        <tr>
+          <td style="border: 1px solid black; padding: 10px;">کل فروش</td>
+          <td style="border: 1px solid black; padding: 10px;">${fmtRial(totalSales)}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid black; padding: 10px;">کل خرید</td>
+          <td style="border: 1px solid black; padding: 10px;">${fmtRial(totalPurchase)}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid black; padding: 10px; font-weight: bold;">سود خالص</td>
+          <td style="border: 1px solid black; padding: 10px; font-weight: bold;">${fmtRial(profit)}</td>
+        </tr>
+      </table>
+
+      <div style="margin-top: 30px; font-size: 14px;">
+        <strong>پرفروش‌ترین اقلام:</strong> ${escapeHtml(topItemsText)}
+      </div>
+    </div>
+  `;
+
+  // رندر موقت HTML به عکس برای PDF
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  tempDiv.style.position = 'fixed'; tempDiv.style.left = '-9999px'; tempDiv.style.width = '700px';
+  document.body.appendChild(tempDiv);
+
+  html2canvas(tempDiv, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    const imgProps = doc.getImageProperties(imgData);
+    const pdfWidth = doc.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    
+    doc.addImage(imgData, 'JPEG', 0, 10, pdfWidth, pdfHeight);
+    doc.save('report.pdf');
+    
+    document.body.removeChild(tempDiv);
+    toast('✅ گزارش PDF ذخیره شد');
+  });
 }
 
 function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
@@ -637,4 +722,3 @@ if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScree
 </script>
 </body>
 </html>
-```
