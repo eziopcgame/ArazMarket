@@ -24,8 +24,13 @@ public partial class MainPage : ContentPage
             {
                 platformWebView.AddJavascriptInterface(new ArazMarket.Platforms.Android.CSharpBridge(), "CSharpBridge");
                 platformWebView.SetDownloadListener(new ArazMarket.Platforms.Android.MyDownloadListener());
+                
                 var webViewHandler = AppWebView.Handler as Microsoft.Maui.Handlers.IWebViewHandler;
-                if (webViewHandler != null) platformWebView.SetWebChromeClient(new ArazMarket.Platforms.Android.MyWebChromeClient(webViewHandler));
+                if (webViewHandler != null)
+                {
+                    platformWebView.SetWebChromeClient(new ArazMarket.Platforms.Android.MyWebChromeClient(webViewHandler));
+                }
+                
                 platformWebView.Settings.JavaScriptEnabled = true;
                 platformWebView.Settings.DomStorageEnabled = true;
                 platformWebView.Settings.AllowFileAccess = true;
