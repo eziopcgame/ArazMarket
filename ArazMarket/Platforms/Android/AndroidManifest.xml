@@ -4,4 +4,8 @@
     
     <!-- مجوز دسترسی به دوربین برای اسکن QR -->
     <uses-permission android:name="android.permission.CAMERA" />
+    
+    <!-- مجوز دسترسی به حافظه برای ذخیره فایل‌ها (لیست و رسید) در پوشه Download -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 </manifest>
