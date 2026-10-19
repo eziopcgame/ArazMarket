@@ -1,5 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace ArazMarket;
 
+// 🟢 این خطوط به لینکر (Linker) می‌گن که کدهای پل C# رو حذف نکنه
+[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.CSharpBridge))]
+[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.MyWebChromeClient))]
+[DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(ArazMarket.Platforms.Android.MyDownloadListener))]
 public partial class MainPage : ContentPage
 {
     public MainPage()
@@ -14,22 +20,29 @@ public partial class MainPage : ContentPage
 #if ANDROID
         try
         {
+            // گرفتن WebView نیتیو اندروید از کنترل MAUI
             var platformWebView = AppWebView.Handler?.PlatformView as Android.Webkit.WebView;
             
             if (platformWebView != null)
             {
-                // ۱. پل C# برای ذخیره فایل
+                // ۱. اضافه کردن پل C# برای ذخیره فایل‌ها (JSON, Receipt)
                 platformWebView.AddJavascriptInterface(new ArazMarket.Platforms.Android.CSharpBridge(), "CSharpBridge");
 
-                // ۲. DownloadListener
+                // ۲. تنظیم DownloadListener برای فایل‌های معمولی
                 platformWebView.SetDownloadListener(new ArazMarket.Platforms.Android.MyDownloadListener());
 
-                // ۳. WebChromeClient برای دوربین (با تبدیل نوع صحیح)
+                // ۳. تنظیم WebChromeClient برای دسترسی به دوربین (QR Scanner)
                 var webViewHandler = AppWebView.Handler as Microsoft.Maui.Handlers.IWebViewHandler;
                 if (webViewHandler != null)
                 {
                     platformWebView.SetWebChromeClient(new ArazMarket.Platforms.Android.MyWebChromeClient(webViewHandler));
                 }
+
+                // ۴. اجازه دادن به WebView برای اجرای جاوااسکریپت و دسترسی به فایل‌های محلی
+                platformWebView.Settings.JavaScriptEnabled = true;
+                platformWebView.Settings.DomStorageEnabled = true;
+                platformWebView.Settings.AllowFileAccess = true;
+                platformWebView.Settings.AllowContentAccess = true;
             }
         }
         catch (Exception ex)
