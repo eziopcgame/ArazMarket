@@ -121,8 +121,8 @@
   .receipt-table td { padding: 10px 6px; text-align: right; border-bottom: 1px solid #ddd; color: var(--text-black); }
   .receipt-total { display: flex; justify-content: space-between; background: var(--purple-light); color: var(--text-black); padding: 12px 16px; border-radius: 12px; margin-top: 10px; font-weight: 800; font-size: 15px; border: 1.5px solid var(--purple-main); }
   
-  .receipt-actions { display: flex; gap: 10px; margin-top: 16px; }
-  .receipt-actions button { flex: 1; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .receipt-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .receipt-actions button { flex: 1 1 45%; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; }
   .receipt-close { background: var(--purple-light); color: var(--text-black); border: 1.5px solid var(--purple-main); }
   .receipt-print { background: var(--purple-main); color: #fff; border: none; }
 
@@ -192,7 +192,7 @@
   <div id="pageHistory" class="hidden">
     <div class="header"><h1>🕒 سابقه رسیدها</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
-    <div class="card" style="text-align: center;"><p style="color:#666;">لیست رسیدهای ذخیره شده در اینجا نمایش داده می‌شود.</p></div>
+    <div id="historyList" style="padding: 0 14px;"></div>
   </div>
 
   <div id="pageReport" class="hidden">
@@ -224,6 +224,7 @@
 
 <script>
 let products = JSON.parse(localStorage.getItem('products') || '[]');
+let history = JSON.parse(localStorage.getItem('history') || '[]');
 let lastUpdate = localStorage.getItem('lastUpdate') || '';
 let selected = new Map();
 let editingIndex = -1;
@@ -240,6 +241,7 @@ function tryLogin(){
 }
 document.getElementById('passInput').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
 function save(){ localStorage.setItem('products', JSON.stringify(products)); setUpdateNow(); }
+function saveHistory(){ localStorage.setItem('history', JSON.stringify(history)); }
 function setUpdateNow(){ lastUpdate = nowFa(); localStorage.setItem('lastUpdate', lastUpdate); updateTimes(); }
 function forceUpdate(){ setUpdateNow(); toast('✅ زمان بروزرسانی شد'); }
 function updateTimes(){
@@ -260,7 +262,24 @@ function switchPage(page){
   document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1)).classList.remove('hidden');
   document.getElementById('nav' + page.charAt(0).toUpperCase() + page.slice(1) + 'Btn').classList.add('active');
   window.scrollTo(0,0);
-  if(page === 'edit') renderEdit(); else if(page === 'select') renderSelect();
+  if(page === 'edit') renderEdit(); 
+  else if(page === 'select') renderSelect();
+  else if(page === 'history') renderHistory();
+}
+
+function renderHistory(){
+  const list = document.getElementById('historyList');
+  if(!history.length){ list.innerHTML = '<div class="card" style="text-align:center; color:#666;">هیچ رسیدی ثبت نشده است.</div>'; return; }
+  list.innerHTML = history.map(h => `
+    <div class="card" style="margin-bottom: 10px; padding: 12px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700;">
+        <span>رسید #${h.id}</span>
+        <span style="color:#888; font-size:12px;">${h.date}</span>
+      </div>
+      <div style="font-size:14px; margin-bottom:8px;">جمع کل: ${fmtRial(h.total)} ریال</div>
+      <div style="font-size:12px; color:#666;">${h.items.length} قلم کالا</div>
+    </div>
+  `).join('');
 }
 
 function submitProduct(){
@@ -348,20 +367,38 @@ function toggleSelectorItem(i){ if(selected.has(i)) selected.delete(i); else sel
 
 function showReceipt(){
   if(!selected.size){ toast('محصولی انتخاب نشده'); return; }
-  let total = 0, rows = [];
+  let total = 0, rows = [], items = [];
   selected.forEach((qty,i) => {
     const p = products[i]; const line = p.price*qty; total += line;
+    items.push({name: p.name, qty: qty, unit: p.unit, price: p.price, line: line});
     rows.push(`<tr><td>${escapeHtml(p.name)}</td><td>${fmtQty(p.unit,qty)}</td><td>${unitLabel(p.unit)}</td><td>${fmtRial(line)}</td></tr>`);
   });
   const receiptHtml = `<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p>
     <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
     <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>`;
+  
+  window._currentReceipt = { date: nowFa(), total: total, items: items };
+
   openModal(receiptHtml + `
     <div class="receipt-actions">
       <button class="receipt-close" onclick="closeModal()">بستن</button>
+      <button class="receipt-print" onclick="saveReceiptToHistory()">📥 ثبت رسید</button>
       <button class="receipt-print" onclick="downloadPdf()">💾 ذخیره PDF</button>
       <button class="receipt-print" onclick="sharePdf()">🔗 اشتراک PDF</button>
     </div>`);
+}
+
+function saveReceiptToHistory() {
+  if(!window._currentReceipt) return;
+  const rec = window._currentReceipt;
+  rec.id = (history.length + 1).toString();
+  history.unshift(rec);
+  saveHistory();
+  closeModal();
+  toast('✅ رسید در سابقه ثبت شد');
+  selected.clear();
+  renderSelect();
+  switchPage('history');
 }
 
 function showExportOptions(){
