@@ -273,8 +273,6 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 let products = JSON.parse(localStorage.getItem('products') || '[]');
 let lastUpdate = localStorage.getItem('lastUpdate') || '';
@@ -433,7 +431,6 @@ function toggleSelect(i){
   if(selected.has(i)) selected.delete(i);
   else selected.set(i, 1);
   renderSelect();
-  // اگر مودال باز بود، اون رو هم آپدیت کن
   if(document.getElementById('appModal') && document.getElementById('searchInModal')) {
     renderProductSelector();
   }
@@ -483,8 +480,6 @@ function updateTotals(){
 function showProductSelector(){
   openModal(`
     <h3 class="modal-title">انتخاب محصولات</h3>
-    
-    <!-- دکمه بستن به بالای لیست منتقل شد و کنار کادر جستجو قرار گرفت -->
     <div style="display: flex; gap: 8px; margin: 0 0 10px 0;">
       <div class="search-box" style="margin: 0; flex: 1; background: rgba(0,0,0,0.2); padding: 0 10px;">
         <span class="ico">🔍</span>
@@ -492,7 +487,6 @@ function showProductSelector(){
       </div>
       <button class="btn btn-secondary" style="margin: 0; width: auto; padding: 0 15px; border: none; background: rgba(255,255,255,.2); color: #fff; font-size: 13px;" onclick="closeModal()">بستن</button>
     </div>
-
     <div id="selectorList" style="flex: 1; overflow-y: auto; min-height: 200px; max-height: 50vh;"></div>
   `);
   setTimeout(() => { document.getElementById('searchInModal').focus(); renderProductSelector(); }, 100);
@@ -574,18 +568,31 @@ function showImportOptions(){
 function exportFile(){
   if(!products.length){ toast('لیست خالی است'); return; }
   const blob = new Blob([JSON.stringify({products},null,2)],{type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'araz-market.json'; a.click();
+  
+  // بررسی اینکه آیا در محیط اپلیکیشن اندروید هستیم یا خیر
+  if (window.CSharpBridge && window.CSharpBridge.SaveFile) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Data = e.target.result;
+        window.CSharpBridge.SaveFile('araz-market.json', base64Data);
+    };
+    reader.readAsDataURL(blob);
+  } else {
+    // حالت پیش‌فرض برای مرورگر
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'araz-market.json'; a.click();
+  }
 }
 function exportQr(){
   if(!products.length) return toast('لیست خالی است');
   const data = JSON.stringify({type:'araz',products});
-  if(typeof QRCode === 'undefined') return toast('کتابخانه QR لود نشد');
+  // کتابخانه QR باید در محیط اندروید یا از طریق C# تامین شود یا در صورت نیاز به اینترنت لود شود
+  if(typeof QRCode === 'undefined') return toast('کتابخانه QR لود نشد (برای QR به اینترنت نیاز است)');
   openModal(`<h3 class="modal-title">▦ اسکن کنید</h3><div id="qrBox" style="background:#fff;padding:10px;border-radius:10px;display:flex;justify-content:center"></div><div class="receipt-actions"><button class="receipt-close" onclick="closeModal()">بستن</button></div>`);
   new QRCode(document.getElementById('qrBox'), {text:data, width:220, height:220});
 }
 let qrScanner=null;
 async function startQrScan(){
-  if(typeof Html5Qrcode === 'undefined') return toast('اسکنر لود نشد');
+  if(typeof Html5Qrcode === 'undefined') return toast('اسکنر لود نشد (برای اسکن به اینترنت نیاز است)');
   openModal(`<h3 class="modal-title">اسکن QR</h3><div id="qrReader" style="width:100%; background:#000; border-radius:10px; overflow:hidden;"></div><div class="receipt-actions"><button class="receipt-close" onclick="stopQrScan()">لغو</button></div>`);
   try{
     qrScanner = new Html5Qrcode('qrReader');
