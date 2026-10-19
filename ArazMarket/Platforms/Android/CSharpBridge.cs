@@ -68,19 +68,20 @@ namespace ArazMarket.Platforms.Android
                 var filePath = Path.Combine(residDir, fileName);
                 File.WriteAllBytes(filePath, bytes);
 
-                var uri = AndroidX.Core.Content.FileProvider.GetUriForFile(
+                // 🔴 مشکل از این خط بود که با global:: حل شد
+                var uri = global::AndroidX.Core.Content.FileProvider.GetUriForFile(
                     global::Android.App.Application.Context,
                     global::Android.App.Application.Context.PackageName + ".fileprovider",
                     new Java.IO.File(filePath));
 
-                var intent = new Android.Content.Intent(Android.Content.Intent.ActionSend);
+                var intent = new global::Android.Content.Intent(global::Android.Content.Intent.ActionSend);
                 intent.SetType("application/pdf");
-                intent.PutExtra(Android.Content.Intent.ExtraStream, uri);
-                intent.AddFlags(Android.Content.ActivityFlags.GrantReadUriPermission);
-                intent.SetFlags(Android.Content.ActivityFlags.NewTask);
+                intent.PutExtra(global::Android.Content.Intent.ExtraStream, uri);
+                intent.AddFlags(global::Android.Content.ActivityFlags.GrantReadUriPermission);
+                intent.SetFlags(global::Android.Content.ActivityFlags.NewTask);
                 
-                var chooser = Android.Content.Intent.CreateChooser(intent, "اشتراک‌گذاری رسید");
-                chooser.SetFlags(Android.Content.ActivityFlags.NewTask);
+                var chooser = global::Android.Content.Intent.CreateChooser(intent, "اشتراک‌گذاری رسید");
+                chooser.SetFlags(global::Android.Content.ActivityFlags.NewTask);
                 global::Android.App.Application.Context.StartActivity(chooser);
             }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine("SharePdf Error: " + ex.Message); }
