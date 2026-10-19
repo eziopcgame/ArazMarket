@@ -1,5 +1,6 @@
 using Android.Webkit;
 using Microsoft.Maui.Handlers;
+using Microsoft.Maui.Platform; // این خط برای پیدا کردن MauiWebChromeClient ضروری است
 using System;
 
 namespace ArazMarket.Platforms.Android
