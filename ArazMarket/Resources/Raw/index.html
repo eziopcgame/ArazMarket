@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -133,6 +134,45 @@
   .diff-add { color: #00B894; margin-bottom: 4px; }
   .diff-remove { color: #E74C3C; margin-bottom: 4px; }
   .diff-change { color: #F39C12; margin-bottom: 4px; }
+  
+  /* استایل نیم دایره سود و ضرر */
+  .chart-container {
+    position: relative;
+    width: 250px;
+    height: 125px;
+    margin: 20px auto;
+    overflow: hidden;
+  }
+  .chart-svg {
+    width: 100%;
+    height: 100%;
+  }
+  .chart-circle-bg {
+    fill: none;
+    stroke: #e0e0e0;
+    stroke-width: 20;
+    stroke-dasharray: 314 314;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s ease-out;
+  }
+  .chart-circle-fill {
+    fill: none;
+    stroke: var(--purple-main);
+    stroke-width: 20;
+    stroke-dasharray: 314 314;
+    stroke-dashoffset: 314;
+    transition: stroke-dashoffset 1s ease-out;
+  }
+  .chart-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -10%);
+    text-align: center;
+    font-weight: 800;
+    color: var(--text-black);
+  }
+  .chart-text .lbl { font-size: 12px; color: #666; font-weight: normal; display: block; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -200,11 +240,25 @@
     <div class="designer">طراح : مبین قاسم اقدمی</div>
     <div class="card">
       <p style="text-align:center; color:red; font-size:12px;">⚠️ توجه: گزارش فقط برای ۲ ماه اخیر قابل نمایش است.</p>
-      <div style="text-align:center; margin: 20px 0;">
-        <div style="width: 200px; height: 100px; border-radius: 100px 100px 0 0; background: linear-gradient(90deg, #6C5CE7 50%, #ddd 50%); margin: 0 auto; position: relative; overflow: hidden;"><div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: #fff;"></div></div>
-        <p>نمودار سود و ضرر (نمایشی)</p>
+      
+      <div class="chart-container">
+        <svg class="chart-svg" viewBox="0 0 250 125">
+          <path class="chart-circle-bg" d="M 25,125 A 100,100 0 0,1 225,125"></path>
+          <path class="chart-circle-fill" id="chartFill" d="M 25,125 A 100,100 0 0,1 225,125" style="stroke-dashoffset: 314;"></path>
+        </svg>
+        <div class="chart-text">
+          <span id="chartValue">0%</span>
+          <span class="lbl">سود</span>
+        </div>
       </div>
-      <button class="btn btn-primary" onclick="downloadPdfReport()">🖨 چاپ گزارش</button>
+
+      <div style="display:flex; justify-content:space-between; margin-top:20px;">
+        <div><span style="color:#666;">کل فروش:</span> <b id="totalSales">۰ ریال</b></div>
+        <div><span style="color:#666;">کل خرید:</span> <b id="totalPurchase">۰ ریال</b></div>
+      </div>
+      <div style="text-align:center; margin-top:10px; font-size:16px; font-weight:800; color:var(--purple-dark);" id="totalProfit">سود خالص: ۰ ریال</div>
+
+      <button class="btn btn-primary" style="margin-top:20px;" onclick="downloadPdfReport()">🖨 چاپ گزارش</button>
     </div>
   </div>
 
@@ -265,6 +319,7 @@ function switchPage(page){
   if(page === 'edit') renderEdit(); 
   else if(page === 'select') renderSelect();
   else if(page === 'history') renderHistory();
+  else if(page === 'report') renderReport();
 }
 
 function renderHistory(){
@@ -277,9 +332,57 @@ function renderHistory(){
         <span style="color:#888; font-size:12px;">${h.date}</span>
       </div>
       <div style="font-size:14px; margin-bottom:8px;">جمع کل: ${fmtRial(h.total)} ریال</div>
-      <div style="font-size:12px; color:#666;">${h.items.length} قلم کالا</div>
+      <div style="font-size:12px; color:#666; margin-bottom:10px;">${h.items.length} قلم کالا</div>
+      <button class="btn btn-secondary" style="margin-top:0; padding:8px; font-size:12px;" onclick="shareHistoryReceipt('${h.id}')">🔗 اشتراک‌گذاری</button>
     </div>
   `).join('');
+}
+
+function shareHistoryReceipt(id) {
+  const h = history.find(x => x.id === id);
+  if(!h) return;
+  let text = `رسید فروش #${h.id}\nتاریخ: ${h.date}\n\n`;
+  h.items.forEach(item => {
+    text += `${item.name} | ${fmtQty(item.unit, item.qty)} ${unitLabel(item.unit)} | ${fmtRial(item.line)} ریال\n`;
+  });
+  text += `\nجمع کل: ${fmtRial(h.total)} ریال`;
+  
+  if (navigator.share) {
+    navigator.share({ title: 'رسید فروش', text: text }).catch(console.error);
+  } else {
+    toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
+  }
+}
+
+function renderReport() {
+  let totalSales = 0;
+  let totalPurchase = 0;
+  
+  history.forEach(h => {
+    h.items.forEach(item => {
+      totalSales += item.line;
+      const p = products.find(x => x.name === item.name);
+      if(p && p.purchasePrice) {
+        totalPurchase += (p.purchasePrice * item.qty);
+      }
+    });
+  });
+
+  const profit = totalSales - totalPurchase;
+  const profitPercent = totalSales > 0 ? Math.min(100, Math.round((profit / totalSales) * 100)) : 0;
+
+  document.getElementById('totalSales').textContent = fmtRial(totalSales) + ' ریال';
+  document.getElementById('totalPurchase').textContent = fmtRial(totalPurchase) + ' ریال';
+  document.getElementById('totalProfit').textContent = 'سود خالص: ' + fmtRial(profit) + ' ریال';
+  
+  document.getElementById('chartValue').textContent = profitPercent + '%';
+  
+  // متغیرهای محیطی برای دایره (نیم دایره طولش حدود 314 است)
+  const offset = 314 - (314 * (profitPercent / 100));
+  document.getElementById('chartFill').style.strokeDashoffset = offset;
+  
+  // رنگ دایره اگر ضرر بود قرمز شود
+  document.getElementById('chartFill').style.stroke = profitPercent < 0 ? '#E74C3C' : 'var(--purple-main)';
 }
 
 function submitProduct(){
@@ -534,3 +637,4 @@ if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScree
 </script>
 </body>
 </html>
+```
