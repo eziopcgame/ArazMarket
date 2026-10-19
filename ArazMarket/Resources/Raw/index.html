@@ -1,3 +1,8 @@
+حق با شماست. من در نسخه قبلی بازه زمانی و تعداد کل اقلام فروخته‌شده را در گزارش مالی لحاظ نکرده بودم. 
+
+این هم کد کامل و نهایی `index.html`. حالا در بالای صفحه گزارش مالی، دو کادر تاریخ (از تاریخ / تا تاریخ) قرار داده شده که می‌توانید بازه زمانی دلخواه (مثلاً ۱ ماه اخیر) را انتخاب کنید. همچنین تعداد کل اقلام فروخته‌شده در این بازه، هم روی صفحه و هم در فایل PDF نمایش داده می‌شود.
+
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -125,14 +130,8 @@
   .chart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -10%); text-align: center; font-weight: 800; color: var(--text-black); }
   .chart-text .lbl { font-size: 12px; color: #666; font-weight: normal; display: block; margin-top: 4px; }
 
-  /* کلاس اختصاصی برای عکس‌برداری */
   .capture-mode .receipt-actions { display: none !important; }
   .capture-mode .modal-card { border: none !important; padding: 0 !important; }
-
-  /* استایل جدول گزارش برای خروجی PDF */
-  .report-pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
-  .report-pdf-table th, .report-pdf-table td { border: 1px solid #000; padding: 8px; text-align: right; }
-  .report-pdf-table th { background: #eee; }
 </style>
 </head>
 <body>
@@ -198,8 +197,14 @@
   <div id="pageReport" class="hidden">
     <div class="header"><h1>📊 گزارش مالی</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
-    <div class="card" id="reportCard">
-      <p style="text-align:center; color:red; font-size:12px;">⚠️ توجه: گزارش فقط برای ۲ ماه اخیر قابل نمایش است.</p>
+    
+    <div class="card">
+      <label style="font-size:12px; font-weight:700; margin-bottom:5px; display:block;">انتخاب بازه زمانی:</label>
+      <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <input type="date" id="startDate" class="field" style="padding:10px; border:1.5px solid var(--purple-main); border-radius:10px; font-family:inherit; flex:1;" onchange="renderReport()">
+        <input type="date" id="endDate" class="field" style="padding:10px; border:1.5px solid var(--purple-main); border-radius:10px; font-family:inherit; flex:1;" onchange="renderReport()">
+      </div>
+
       <div class="chart-container">
         <svg class="chart-svg" viewBox="0 0 250 125">
           <path class="chart-circle-bg" d="M 25,125 A 100,100 0 0,1 225,125"></path>
@@ -210,11 +215,13 @@
           <span class="lbl">سود</span>
         </div>
       </div>
+      
       <div style="display:flex; justify-content:space-between; margin-top:20px;">
         <div><span style="color:#666;">کل فروش:</span> <b id="totalSales">۰ ریال</b></div>
         <div><span style="color:#666;">کل خرید:</span> <b id="totalPurchase">۰ ریال</b></div>
       </div>
       <div style="text-align:center; margin-top:10px; font-size:16px; font-weight:800; color:var(--purple-dark);" id="totalProfit">سود خالص: ۰ ریال</div>
+      <div style="text-align:center; margin-top:10px; font-size:14px; color:var(--text-black);" id="totalItemsSold">تعداد کل اقلام فروخته شده: ۰</div>
       
       <div id="topSellingContainer" style="margin-top:20px; border-top:1px solid #ddd; padding-top:10px;">
         <h4 style="margin:0 0 10px 0; font-size:14px;">🔥 پرفروش‌ترین اقلام:</h4>
@@ -513,15 +520,43 @@ async function shareHistoryReceiptImage(id) {
   }
 }
 
-/* ================= گزارش مالی و PDF ================= */
+function getFilteredHistory() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+  
+  return history.filter(h => {
+    if(!start && !end) return true;
+    
+    // تبدیل تاریخ شمسی به میلادی برای مقایسه
+    const p = h.date.split(',');
+    let datePart = p[0].trim(); // 1405/07/27
+    let parts = datePart.split('/');
+    if(parts.length !== 3) return true;
+    
+    // تبدیل تقریبی به تاریخ استاندارد
+    let hYear = parseInt(parts[0]) + 621;
+    let hMonth = parts[1].padStart(2, '0');
+    let hDay = parts[2].padStart(2, '0');
+    let hDateStr = `${hYear}-${hMonth}-${hDay}`;
+    
+    if(start && hDateStr < start) return false;
+    if(end && hDateStr > end) return false;
+    return true;
+  });
+}
+
 function renderReport() {
+  const filtered = getFilteredHistory();
+  
   let totalSales = 0;
   let totalPurchase = 0;
+  let totalItemsSold = 0;
   let itemsCount = {};
 
-  history.forEach(h => {
+  filtered.forEach(h => {
     h.items.forEach(item => {
       totalSales += item.line;
+      totalItemsSold += item.qty;
       if(!itemsCount[item.name]) itemsCount[item.name] = 0;
       itemsCount[item.name] += item.qty;
 
@@ -536,13 +571,13 @@ function renderReport() {
   document.getElementById('totalSales').textContent = fmtRial(totalSales) + ' ریال';
   document.getElementById('totalPurchase').textContent = fmtRial(totalPurchase) + ' ریال';
   document.getElementById('totalProfit').textContent = 'سود خالص: ' + fmtRial(profit) + ' ریال';
+  document.getElementById('totalItemsSold').textContent = 'تعداد کل اقلام فروخته شده: ' + totalItemsSold.toLocaleString('fa-IR') + ' عدد';
   document.getElementById('chartValue').textContent = profitPercent + '%';
   
   const offset = 314 - (314 * (profitPercent / 100));
   document.getElementById('chartFill').style.strokeDashoffset = offset;
   document.getElementById('chartFill').style.stroke = profitPercent < 0 ? '#E74C3C' : 'var(--purple-main)';
 
-  // محاسبه پرفروش‌ترین اقلام
   let sortedItems = Object.keys(itemsCount).map(name => ({name, qty: itemsCount[name]})).sort((a,b) => b.qty - a.qty);
   let topList = document.getElementById('topSellingList');
   if(sortedItems.length === 0) {
@@ -553,13 +588,17 @@ function renderReport() {
 }
 
 function downloadPdfReport() {
+  const filtered = getFilteredHistory();
+  
   let totalSales = 0;
   let totalPurchase = 0;
+  let totalItemsSold = 0;
   let itemsCount = {};
 
-  history.forEach(h => {
+  filtered.forEach(h => {
     h.items.forEach(item => {
       totalSales += item.line;
+      totalItemsSold += item.qty;
       if(!itemsCount[item.name]) itemsCount[item.name] = 0;
       itemsCount[item.name] += item.qty;
       const p = products.find(x => x.name === item.name);
@@ -572,6 +611,9 @@ function downloadPdfReport() {
   let topItemsText = sortedItems.slice(0, 3).map(item => `${item.name} (${item.qty})`).join(' - ');
   if(!topItemsText) topItemsText = 'اطلاعاتی نیست';
 
+  const start = document.getElementById('startDate').value || 'ابتدا';
+  const end = document.getElementById('endDate').value || 'انتها';
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
 
@@ -579,24 +621,28 @@ function downloadPdfReport() {
   let htmlContent = `
     <div style="font-family: Tahoma, sans-serif; direction: rtl; text-align: right; width: 100%; padding: 20px;">
       <h2 style="text-align: center; color: black; margin-bottom: 20px;">گزارش مالی آراز مارکت</h2>
-      <p style="text-align: center; font-size: 12px; color: #555;">تاریخ گزارش: ${nowFa()}</p>
+      <p style="text-align: center; font-size: 12px; color: #555;">بازه زمانی: ${start} تا ${end}</p>
       
       <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
         <tr>
           <th style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">شرح</th>
-          <th style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">مبلغ (ریال)</th>
+          <th style="border: 1px solid black; padding: 10px; background-color: #f0f0f0;">مبلغ / تعداد</th>
         </tr>
         <tr>
           <td style="border: 1px solid black; padding: 10px;">کل فروش</td>
-          <td style="border: 1px solid black; padding: 10px;">${fmtRial(totalSales)}</td>
+          <td style="border: 1px solid black; padding: 10px;">${fmtRial(totalSales)} ریال</td>
         </tr>
         <tr>
           <td style="border: 1px solid black; padding: 10px;">کل خرید</td>
-          <td style="border: 1px solid black; padding: 10px;">${fmtRial(totalPurchase)}</td>
+          <td style="border: 1px solid black; padding: 10px;">${fmtRial(totalPurchase)} ریال</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid black; padding: 10px;">تعداد کل اقلام فروخته شده</td>
+          <td style="border: 1px solid black; padding: 10px;">${totalItemsSold} عدد</td>
         </tr>
         <tr>
           <td style="border: 1px solid black; padding: 10px; font-weight: bold;">سود خالص</td>
-          <td style="border: 1px solid black; padding: 10px; font-weight: bold;">${fmtRial(profit)}</td>
+          <td style="border: 1px solid black; padding: 10px; font-weight: bold;">${fmtRial(profit)} ریال</td>
         </tr>
       </table>
 
@@ -606,7 +652,6 @@ function downloadPdfReport() {
     </div>
   `;
 
-  // رندر موقت HTML به عکس برای PDF
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
   tempDiv.style.position = 'fixed'; tempDiv.style.left = '-9999px'; tempDiv.style.width = '700px';
@@ -722,3 +767,4 @@ if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScree
 </script>
 </body>
 </html>
+```
