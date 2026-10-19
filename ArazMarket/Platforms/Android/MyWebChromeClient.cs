@@ -1,6 +1,5 @@
 using Android.Webkit;
 using Microsoft.Maui.Handlers;
-using Microsoft.Maui.Platform;
 using System;
 
 namespace ArazMarket.Platforms.Android
@@ -9,13 +8,14 @@ namespace ArazMarket.Platforms.Android
     {
         public MyWebChromeClient(IWebViewHandler handler) : base(handler) { }
 
-        public override void OnPermissionRequest(PermissionRequest request)
+        public override void OnPermissionRequest(PermissionRequest? request)
         {
+            if (request == null) return;
+            
             foreach (var resource in request.GetResources())
             {
                 if (resource.Equals(PermissionRequest.ResourceVideoCapture, StringComparison.OrdinalIgnoreCase))
                 {
-                    // اجازه دادن به WebView برای دسترسی به دوربین
                     request.Grant(request.GetResources());
                     return;
                 }
