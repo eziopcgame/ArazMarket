@@ -1,3 +1,7 @@
+حق با شماست. من در نسخه قبلی فقط خلاصه‌ای از رسید را نشان می‌دادم و دکمه مشاهده جزئیات را نگذاشته بودم. 
+
+این کد کامل `index.html` است. در این نسخه، هر رسید در سابقه، یک دکمه **⋮ (سه نقطه)** دارد که با زدن آن، جزئیات کامل رسید (جدول کالاها، قیمت و تاریخ) باز می‌شود و از همان‌جا هم می‌توانید آن را به اشتراک بگذارید.
+
 ```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -88,7 +92,7 @@
   .product .price { font-size: 13px; font-weight: 700; margin-top: 4px; color: var(--purple-dark); }
 
   .actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .btn-icon { width: 38px; height: 38px; border: 1.5px solid var(--purple-main); border-radius: 12px; background: var(--purple-light); color: var(--text-black); font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .btn-icon { width: 38px; height: 38px; border: 1.5px solid var(--purple-main); border-radius: 12px; background: var(--purple-light); color: var(--text-black); font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer;}
   
   .qty-control { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
   .qty-btn { width: 32px; height: 32px; border: 1.5px solid var(--purple-main); border-radius: 10px; background: var(--purple-light); color: var(--text-black); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center;}
@@ -135,7 +139,6 @@
   .diff-remove { color: #E74C3C; margin-bottom: 4px; }
   .diff-change { color: #F39C12; margin-bottom: 4px; }
   
-  /* استایل نیم دایره سود و ضرر */
   .chart-container {
     position: relative;
     width: 250px;
@@ -326,16 +329,30 @@ function renderHistory(){
   const list = document.getElementById('historyList');
   if(!history.length){ list.innerHTML = '<div class="card" style="text-align:center; color:#666;">هیچ رسیدی ثبت نشده است.</div>'; return; }
   list.innerHTML = history.map(h => `
-    <div class="card" style="margin-bottom: 10px; padding: 12px;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-weight:700;">
-        <span>رسید #${h.id}</span>
-        <span style="color:#888; font-size:12px;">${h.date}</span>
+    <div class="card" style="margin-bottom: 10px; padding: 12px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-weight:700; margin-bottom:6px;">رسید #${h.id}</div>
+        <div style="font-size:12px; color:#666;">تاریخ: ${h.date}</div>
+        <div style="font-size:13px; color:var(--purple-dark); margin-top:4px;">جمع کل: ${fmtRial(h.total)} ریال</div>
       </div>
-      <div style="font-size:14px; margin-bottom:8px;">جمع کل: ${fmtRial(h.total)} ریال</div>
-      <div style="font-size:12px; color:#666; margin-bottom:10px;">${h.items.length} قلم کالا</div>
-      <button class="btn btn-secondary" style="margin-top:0; padding:8px; font-size:12px;" onclick="shareHistoryReceipt('${h.id}')">🔗 اشتراک‌گذاری</button>
+      <button class="btn-icon" onclick="showHistoryDetails('${h.id}')">⋮</button>
     </div>
   `).join('');
+}
+
+function showHistoryDetails(id) {
+  const h = history.find(x => x.id === id);
+  if(!h) return;
+  
+  let rows = h.items.map(item => `<tr><td>${escapeHtml(item.name)}</td><td>${fmtQty(item.unit, item.qty)}</td><td>${unitLabel(item.unit)}</td><td>${fmtRial(item.line)}</td></tr>`).join('');
+  
+  openModal(`<h3 class="modal-title">🧾 رسید #${h.id}</h3><p class="modal-sub">تاریخ: ${h.date}</p>
+    <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(h.total)} ریال</span></div>
+    <div class="receipt-actions" style="justify-content:center;">
+      <button class="receipt-close" onclick="closeModal()">بستن</button>
+      <button class="receipt-print" onclick="shareHistoryReceipt('${h.id}')">🔗 اشتراک‌گذاری</button>
+    </div>`);
 }
 
 function shareHistoryReceipt(id) {
@@ -377,11 +394,9 @@ function renderReport() {
   
   document.getElementById('chartValue').textContent = profitPercent + '%';
   
-  // متغیرهای محیطی برای دایره (نیم دایره طولش حدود 314 است)
   const offset = 314 - (314 * (profitPercent / 100));
   document.getElementById('chartFill').style.strokeDashoffset = offset;
   
-  // رنگ دایره اگر ضرر بود قرمز شود
   document.getElementById('chartFill').style.stroke = profitPercent < 0 ? '#E74C3C' : 'var(--purple-main)';
 }
 
