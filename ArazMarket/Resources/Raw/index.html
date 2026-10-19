@@ -144,22 +144,6 @@
 
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; opacity: 0; transition: all .3s; pointer-events: none; z-index: 100; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
-
-  /* ====== استایل‌های اختصاصی چاپ (پرینت) ====== */
-  @media print {
-    @page { margin: 10mm; }
-    body * { visibility: hidden; }
-    .modal, .modal * { visibility: visible; }
-    .modal { position: absolute; inset: 0; background: #fff !important; padding: 0 !important; display: block !important; }
-    .modal-card { background: #fff !important; color: #000 !important; border: none !important; box-shadow: none !important; max-height: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
-    .modal-title, .modal-sub { color: #000 !important; margin-bottom: 15px !important; }
-    .receipt-table-wrapper { background: transparent !important; overflow: visible !important; }
-    .receipt-table { border: 1.5px solid #000 !important; }
-    .receipt-table th { background: #eee !important; color: #000 !important; border-bottom: 1.5px solid #000 !important; border-left: 1px solid #000 !important; }
-    .receipt-table td { color: #000 !important; border-bottom: 1px solid #000 !important; border-left: 1px solid #000 !important; }
-    .receipt-total { background: #eee !important; color: #000 !important; border: 1.5px solid #000 !important; }
-    .receipt-actions { display: none !important; }
-  }
 </style>
 </head>
 <body>
@@ -234,7 +218,6 @@
     <div class="designer">طراح : مبین قاسم اقدمی</div>
     <div class="card" style="text-align: center;">
       <p style="color:#666;">لیست رسیدهای ذخیره شده در اینجا نمایش داده می‌شود.</p>
-      <!-- این بخش در آینده با کد C# پر می‌شود -->
     </div>
   </div>
 
@@ -245,13 +228,12 @@
     <div class="card">
       <p style="text-align:center; color:red; font-size:12px;">⚠️ توجه: گزارش فقط برای ۲ ماه اخیر قابل نمایش است.</p>
       <div style="text-align:center; margin: 20px 0;">
-        <!-- نمودار نیم دایره ساده با CSS -->
         <div style="width: 200px; height: 100px; border-radius: 100px 100px 0 0; background: linear-gradient(90deg, #6C5CE7 50%, #ddd 50%); margin: 0 auto; position: relative; overflow: hidden;">
             <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: #fff;"></div>
         </div>
         <p>نمودار سود و ضرر (نمایشی)</p>
       </div>
-      <button class="btn btn-primary" onclick="window.print()">🖨 چاپ گزارش</button>
+      <button class="btn btn-primary" onclick="downloadPdfReport()">🖨 چاپ گزارش</button>
     </div>
   </div>
 
@@ -266,6 +248,11 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- لود کردن کتابخانه‌های محلی -->
+<script src="html5-qrcode.min.js"></script>
+<script src="html2pdf.bundle.min.js"></script>
+
 <script>
 let products = JSON.parse(localStorage.getItem('products') || '[]');
 let lastUpdate = localStorage.getItem('lastUpdate') || '';
@@ -389,7 +376,6 @@ function renderSelect(){
 }
 function toggleSelect(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderSelect(); }
 
-// 🟢 باگ مودال برطرف شد (آپدیت مودال هنگام تغییر تعداد)
 function changeQty(i, d){
   if(!selected.has(i)) return;
   let v = Number(selected.get(i)) + d;
@@ -467,11 +453,39 @@ function showReceipt(){
   openModal(receiptHtml + `
     <div class="receipt-actions">
       <button class="receipt-close" onclick="closeModal()">بستن</button>
-      <button class="receipt-print" onclick="window.print()">🖨 چاپ</button>
+      <button class="receipt-print" onclick="downloadPdf()">🖨 ذخیره PDF</button>
       <button class="receipt-print" onclick="saveReceiptToFile()">💾 ذخیره</button>
     </div>`);
 }
 
+/* ================= ساخت PDF آفلاین ================= */
+function downloadPdf() {
+    const element = document.querySelector('.modal-card');
+    const opt = {
+        margin: 0.5,
+        filename: 'receipt-' + new Date().toISOString().slice(0,10) + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+    toast('✅ PDF ذخیره شد');
+}
+
+function downloadPdfReport() {
+    const element = document.querySelector('#pageReport .card');
+    const opt = {
+        margin: 0.5,
+        filename: 'report-' + new Date().toISOString().slice(0,10) + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+    toast('✅ گزارش ذخیره شد');
+}
+
+/* ================= ذخیره رسید از طریق C# ================= */
 function saveReceiptToFile(){
   if(!window.CSharpBridge || !window.CSharpBridge.SaveReceipt) {
     toast('در مرورگر نمیتوان ذخیره کرد');
@@ -480,9 +494,10 @@ function saveReceiptToFile(){
   let receiptText = "رسید فروش - " + nowFa() + "\n";
   selected.forEach((qty,i) => { const p = products[i]; receiptText += p.name + " | " + qty + " | " + p.price + "\n"; });
   window.CSharpBridge.SaveReceipt(receiptText);
-  toast('✅ رسید ذخیره شد');
+  toast('✅ رسید در حافظه ذخیره شد');
 }
 
+/* ================= ابزارها ================= */
 function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
 function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
 
