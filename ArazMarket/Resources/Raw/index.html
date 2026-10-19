@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>آراز مارکت</title>
+<script src="html5-qrcode.min.js"></script>
+<script src="qrcode.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
     --purple-light: #F3F0FF;
@@ -13,11 +17,21 @@
     --text-black: #2D3436;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0; font-family: -apple-system, "Vazirmatn", Tahoma, sans-serif;
-    background-color: var(--bg-white); color: var(--text-black);
-    min-height: 100vh; padding: 0 0 90px 0; position: relative;
+  html, body {
+    margin: 0; 
+    font-family: -apple-system, "Vazirmatn", Tahoma, sans-serif;
+    background-color: var(--bg-white); 
+    color: var(--text-black);
+    height: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-y: none; /* جلوگیری از کش شدن صفحه */
   }
+  body {
+    min-height: 100vh; 
+    padding: 0 0 90px 0; 
+    position: relative;
+  }
+  #mainApp { min-height: 100%; display: flex; flex-direction: column; }
   .hidden { display: none !important; }
 
   #lockScreen {
@@ -134,42 +148,11 @@
   .diff-remove { color: #E74C3C; margin-bottom: 4px; }
   .diff-change { color: #F39C12; margin-bottom: 4px; }
   
-  .chart-container {
-    position: relative;
-    width: 250px;
-    height: 125px;
-    margin: 20px auto;
-    overflow: hidden;
-  }
-  .chart-svg {
-    width: 100%;
-    height: 100%;
-  }
-  .chart-circle-bg {
-    fill: none;
-    stroke: #e0e0e0;
-    stroke-width: 20;
-    stroke-dasharray: 314 314;
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset 1s ease-out;
-  }
-  .chart-circle-fill {
-    fill: none;
-    stroke: var(--purple-main);
-    stroke-width: 20;
-    stroke-dasharray: 314 314;
-    stroke-dashoffset: 314;
-    transition: stroke-dashoffset 1s ease-out;
-  }
-  .chart-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -10%);
-    text-align: center;
-    font-weight: 800;
-    color: var(--text-black);
-  }
+  .chart-container { position: relative; width: 250px; height: 125px; margin: 20px auto; overflow: hidden; }
+  .chart-svg { width: 100%; height: 100%; }
+  .chart-circle-bg { fill: none; stroke: #e0e0e0; stroke-width: 20; stroke-dasharray: 314 314; stroke-dashoffset: 0; }
+  .chart-circle-fill { fill: none; stroke: var(--purple-main); stroke-width: 20; stroke-dasharray: 314 314; stroke-dashoffset: 314; transition: stroke-dashoffset 1s ease-out; }
+  .chart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -10%); text-align: center; font-weight: 800; color: var(--text-black); }
   .chart-text .lbl { font-size: 12px; color: #666; font-weight: normal; display: block; margin-top: 4px; }
 </style>
 </head>
@@ -238,7 +221,6 @@
     <div class="designer">طراح : مبین قاسم اقدمی</div>
     <div class="card">
       <p style="text-align:center; color:red; font-size:12px;">⚠️ توجه: گزارش فقط برای ۲ ماه اخیر قابل نمایش است.</p>
-      
       <div class="chart-container">
         <svg class="chart-svg" viewBox="0 0 250 125">
           <path class="chart-circle-bg" d="M 25,125 A 100,100 0 0,1 225,125"></path>
@@ -249,13 +231,11 @@
           <span class="lbl">سود</span>
         </div>
       </div>
-
       <div style="display:flex; justify-content:space-between; margin-top:20px;">
         <div><span style="color:#666;">کل فروش:</span> <b id="totalSales">۰ ریال</b></div>
         <div><span style="color:#666;">کل خرید:</span> <b id="totalPurchase">۰ ریال</b></div>
       </div>
       <div style="text-align:center; margin-top:10px; font-size:16px; font-weight:800; color:var(--purple-dark);" id="totalProfit">سود خالص: ۰ ریال</div>
-
       <button class="btn btn-primary" style="margin-top:20px;" onclick="downloadPdfReport()">🖨 چاپ گزارش</button>
     </div>
   </div>
@@ -270,11 +250,8 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="html5-qrcode.min.js"></script>
-<script src="html2pdf.bundle.min.js"></script>
-<script src="qrcode.min.js"></script> 
-
 <script>
+// --- بخش اول: متغیرها و توابع پایه ---
 let products = JSON.parse(localStorage.getItem('products') || '[]');
 let history = JSON.parse(localStorage.getItem('history') || '[]');
 let lastUpdate = localStorage.getItem('lastUpdate') || '';
@@ -320,6 +297,169 @@ function switchPage(page){
   else if(page === 'report') renderReport();
 }
 
+// --- بخش دوم: ثبت محصولات و لیست ---
+function submitProduct(){
+  const nameEl = document.getElementById('name'), priceEl = document.getElementById('price'), purchaseEl = document.getElementById('purchasePrice');
+  const name = nameEl.value.trim(), price = priceEl.value.trim(), purchase = purchaseEl.value.trim();
+  if(!name || !price){ toast('⚠️ نام و قیمت فروش را وارد کنید'); return; }
+  if(editingIndex >= 0){
+    const old = products[editingIndex];
+    products[editingIndex] = {...old, name, price:Number(price), purchasePrice: Number(purchase||0), unit:currentUnit, updatedAt:nowFa()};
+    toast('✅ ویرایش شد');
+  } else {
+    const when = nowFa();
+    products.unshift({name, price:Number(price), purchasePrice:Number(purchase||0), unit:currentUnit, createdAt:when, updatedAt:when});
+    toast('✅ اضافه شد');
+  }
+  cancelEdit(); save(); renderEdit(); renderSelect();
+}
+function editProduct(i){
+  editingIndex = i; const p = products[i];
+  document.getElementById('name').value = p.name; document.getElementById('price').value = p.price; document.getElementById('purchasePrice').value = p.purchasePrice || '';
+  setUnit(p.unit); document.getElementById('submitBtn').textContent = '💾 ذخیره ویرایش';
+  document.getElementById('cancelEditBtn').classList.remove('hidden'); document.getElementById('name').focus();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function cancelEdit(){
+  editingIndex = -1; document.getElementById('name').value = ''; document.getElementById('price').value = ''; document.getElementById('purchasePrice').value = '';
+  setUnit('piece'); document.getElementById('submitBtn').textContent = '➕ افزودن محصول';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
+}
+function renderEdit(){
+  const q = document.getElementById('search').value.trim().toLowerCase(), list = document.getElementById('listEdit');
+  const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
+  document.getElementById('count').textContent = filtered.length;
+  if(!filtered.length){ list.innerHTML = `<div class="empty"><span class="emoji">📦</span><p>محصولی یافت نشد</p></div>`; return; }
+  list.innerHTML = filtered.map(({p,i}) => `
+    <div class="product">
+      <div class="info">
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="meta">${unitLabel(p.unit)} | ${escapeHtml(p.updatedAt)}</div>
+        <div class="price">${fmtRial(p.price)} ریال</div>
+      </div>
+      <div class="actions"><button class="btn-icon" onclick="editProduct(${i})">✏️</button></div>
+    </div>`).join('');
+}
+
+// --- بخش سوم: محاسبه و انتخاب محصولات ---
+function renderSelect(){
+  const list = document.getElementById('listSelect'), countEl = document.getElementById('countSelect');
+  if(selected.size === 0) {
+    list.innerHTML = ''; countEl.textContent = '0';
+    document.querySelector('#selectedProductsContainer .list-title').style.display = 'none';
+    updateTotals(); return;
+  } else { document.querySelector('#selectedProductsContainer .list-title').style.display = 'flex'; }
+  let html = '';
+  selected.forEach((qty, i) => {
+    const p = products[i]; if(!p) return;
+    html += `<div class="product selected">
+      <div class="check">✓</div>
+      <div class="info"><div class="name">${escapeHtml(p.name)}</div><div class="price">${fmtRial(p.price)} ریال</div></div>
+      <div class="qty-control"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button><input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)"><button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>
+      <button class="btn-icon" style="background: #ffebee; color: #c62828; border-color: #c62828;" onclick="toggleSelect(${i})">✕</button>
+    </div>`;
+  });
+  list.innerHTML = html; countEl.textContent = selected.size; updateTotals();
+}
+function toggleSelect(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderSelect(); }
+function changeQty(i, d){ if(!selected.has(i)) return; let v = Number(selected.get(i)) + d; if(products[i].unit==='kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; } else { if(v<1)v=1; v=Math.round(v); } selected.set(i,v); renderSelect(); if(document.getElementById('appModal')) { renderProductSelector(); } }
+function setQty(i, raw){ if(!selected.has(i)) return; let v = Number(raw); if(isNaN(v))v=1; if(products[i].unit==='kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; } else { if(v<1)v=1; v=Math.round(v); } selected.set(i,v); renderSelect(); if(document.getElementById('appModal')) { renderProductSelector(); } }
+function selectAll(on){ if(on) products.forEach((_,i) => selected.set(i,1)); else selected.clear(); renderSelect(); }
+function updateTotals(){ let t=0, c=0; selected.forEach((q,i) => { if(products[i]){ t += products[i].price*q; c++; } }); document.getElementById('totalSelect').textContent = fmtRial(t); document.getElementById('countSelected').textContent = c; }
+
+function showProductSelector(){
+  openModal(`<h3 class="modal-title">انتخاب محصولات</h3><div style="display: flex; gap: 8px; margin: 0 0 10px 0;"><div class="search-box" style="margin: 0; flex: 1; padding: 0 10px;"><span>🔍</span><input id="searchInModal" placeholder="جستجو..." oninput="renderProductSelector()"></div><button class="btn btn-secondary" style="margin: 0; width: auto; padding: 0 15px; font-size: 13px;" onclick="closeModal()">بستن</button></div><div id="selectorList" style="flex: 1; overflow-y: auto; min-height: 200px; max-height: 50vh;"></div>`);
+  setTimeout(() => { renderProductSelector(); }, 100);
+}
+function renderProductSelector(){
+  const q = document.getElementById('searchInModal').value.trim().toLowerCase(), listEl = document.getElementById('selectorList');
+  const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
+  if(!filtered.length) { listEl.innerHTML = '<div style="text-align:center; padding:20px;">محصولی یافت نشد</div>'; return; }
+  listEl.innerHTML = filtered.map(({p, i}) => {
+    const isSelected = selected.has(i), qty = selected.get(i) || 1;
+    return `<div class="product ${isSelected ? 'selected' : ''}" style="margin: 0 0 8px 0;"><div class="check" onclick="toggleSelectorItem(${i})">${isSelected ? '✓' : ''}</div><div class="info" onclick="toggleSelectorItem(${i})"><div class="name">${escapeHtml(p.name)}</div><div class="price">${fmtRial(p.price)} ریال</div></div>${isSelected ? `<div class="qty-control"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button><input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)"><button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>` : ''}</div>`;
+  }).join('');
+}
+function toggleSelectorItem(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderProductSelector(); renderSelect(); }
+
+// --- بخش چهارم: رسید (ذخیره و اشتراک عکس) ---
+function showReceipt(){
+  if(!selected.size){ toast('محصولی انتخاب نشده'); return; }
+  let total = 0, rows = [], items = [];
+  selected.forEach((qty,i) => {
+    const p = products[i]; const line = p.price*qty; total += line;
+    items.push({name: p.name, qty: qty, unit: p.unit, price: p.price, line: line});
+    rows.push(`<tr><td>${escapeHtml(p.name)}</td><td>${fmtQty(p.unit,qty)}</td><td>${unitLabel(p.unit)}</td><td>${fmtRial(line)}</td></tr>`);
+  });
+  const receiptHtml = `<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p>
+    <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+    <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>`;
+  
+  window._currentReceipt = { date: nowFa(), total: total, items: items };
+
+  openModal(receiptHtml + `
+    <div class="receipt-actions">
+      <button class="receipt-close" onclick="closeModal()">بستن</button>
+      <button class="receipt-print" onclick="saveReceiptToHistory()">📥 ثبت رسید</button>
+      <button class="receipt-print" onclick="saveReceiptAsImage()">🖼️ ذخیره عکس</button>
+      <button class="receipt-print" onclick="shareReceiptAsImage()">🔗 اشتراک عکس</button>
+    </div>`);
+}
+
+async function saveReceiptAsImage() {
+  const element = document.querySelector('.modal-card');
+  try {
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+    
+    if (window.CSharpBridge && window.CSharpBridge.SaveImage) {
+      const base64Data = base64Image.split(',')[1];
+      window.CSharpBridge.SaveImage(base64Data);
+      toast('✅ عکس در حافظه ذخیره شد');
+    } else {
+      const link = document.createElement('a');
+      link.href = base64Image;
+      link.download = 'receipt.jpg';
+      link.click();
+      toast('✅ عکس دانلود شد');
+    }
+  } catch(e) {
+    toast('❌ خطا در ساخت عکس');
+  }
+}
+
+async function shareReceiptAsImage() {
+  const element = document.querySelector('.modal-card');
+  try {
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+    
+    if (window.CSharpBridge && window.CSharpBridge.ShareImage) {
+      const base64Data = base64Image.split(',')[1];
+      window.CSharpBridge.ShareImage(base64Data);
+      toast('✅ اشتراک‌گذاری باز شد');
+    } else {
+      toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
+    }
+  } catch(e) {
+    toast('❌ خطا در ساخت عکس');
+  }
+}
+
+function saveReceiptToHistory() {
+  if(!window._currentReceipt) return;
+  const rec = window._currentReceipt;
+  rec.id = (history.length + 1).toString();
+  history.unshift(rec);
+  saveHistory();
+  closeModal();
+  toast('✅ رسید در سابقه ثبت شد');
+  selected.clear();
+  renderSelect();
+  switchPage('history');
+}
+
+// --- بخش پنجم: سابقه رسیدها ---
 function renderHistory(){
   const list = document.getElementById('historyList');
   if(!history.length){ list.innerHTML = '<div class="card" style="text-align:center; color:#666;">هیچ رسیدی ثبت نشده است.</div>'; return; }
@@ -366,6 +506,7 @@ function shareHistoryReceipt(id) {
   }
 }
 
+// --- بخش ششم: گزارش مالی ---
 function renderReport() {
   let totalSales = 0;
   let totalPurchase = 0;
@@ -395,125 +536,26 @@ function renderReport() {
   document.getElementById('chartFill').style.stroke = profitPercent < 0 ? '#E74C3C' : 'var(--purple-main)';
 }
 
-function submitProduct(){
-  const nameEl = document.getElementById('name'), priceEl = document.getElementById('price'), purchaseEl = document.getElementById('purchasePrice');
-  const name = nameEl.value.trim(), price = priceEl.value.trim(), purchase = purchaseEl.value.trim();
-  if(!name || !price){ toast('⚠️ نام و قیمت فروش را وارد کنید'); return; }
-  if(editingIndex >= 0){
-    const old = products[editingIndex];
-    products[editingIndex] = {...old, name, price:Number(price), purchasePrice: Number(purchase||0), unit:currentUnit, updatedAt:nowFa()};
-    toast('✅ ویرایش شد');
-  } else {
-    const when = nowFa();
-    products.unshift({name, price:Number(price), purchasePrice:Number(purchase||0), unit:currentUnit, createdAt:when, updatedAt:when});
-    toast('✅ اضافه شد');
-  }
-  cancelEdit(); save(); renderEdit(); renderSelect();
-}
-function editProduct(i){
-  editingIndex = i; const p = products[i];
-  document.getElementById('name').value = p.name; document.getElementById('price').value = p.price; document.getElementById('purchasePrice').value = p.purchasePrice || '';
-  setUnit(p.unit); document.getElementById('submitBtn').textContent = '💾 ذخیره ویرایش';
-  document.getElementById('cancelEditBtn').classList.remove('hidden'); document.getElementById('name').focus();
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-function cancelEdit(){
-  editingIndex = -1; document.getElementById('name').value = ''; document.getElementById('price').value = ''; document.getElementById('purchasePrice').value = '';
-  setUnit('piece'); document.getElementById('submitBtn').textContent = '➕ افزودن محصول';
-  document.getElementById('cancelEditBtn').classList.add('hidden');
-}
-function renderEdit(){
-  const q = document.getElementById('search').value.trim().toLowerCase(), list = document.getElementById('listEdit');
-  const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
-  document.getElementById('count').textContent = filtered.length;
-  if(!filtered.length){ list.innerHTML = `<div class="empty"><span class="emoji">📦</span><p>محصولی یافت نشد</p></div>`; return; }
-  list.innerHTML = filtered.map(({p,i}) => `
-    <div class="product">
-      <div class="info">
-        <div class="name">${escapeHtml(p.name)}</div>
-        <div class="meta">${unitLabel(p.unit)} | ${escapeHtml(p.updatedAt)}</div>
-        <div class="price">${fmtRial(p.price)} ریال</div>
-      </div>
-      <div class="actions"><button class="btn-icon" onclick="editProduct(${i})">✏️</button></div>
-    </div>`).join('');
+function downloadPdfReport() {
+    const { jsPDF } = window.jspdf;
+    const element = document.querySelector('#pageReport .card');
+    html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('report.pdf');
+        toast('✅ گزارش ذخیره شد');
+    });
 }
 
-function renderSelect(){
-  const list = document.getElementById('listSelect'), countEl = document.getElementById('countSelect');
-  if(selected.size === 0) {
-    list.innerHTML = ''; countEl.textContent = '0';
-    document.querySelector('#selectedProductsContainer .list-title').style.display = 'none';
-    updateTotals(); return;
-  } else { document.querySelector('#selectedProductsContainer .list-title').style.display = 'flex'; }
-  let html = '';
-  selected.forEach((qty, i) => {
-    const p = products[i]; if(!p) return;
-    html += `<div class="product selected">
-      <div class="check">✓</div>
-      <div class="info"><div class="name">${escapeHtml(p.name)}</div><div class="price">${fmtRial(p.price)} ریال</div></div>
-      <div class="qty-control"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button><input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)"><button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>
-      <button class="btn-icon" style="background: #ffebee; color: #c62828; border-color: #c62828;" onclick="toggleSelect(${i})">✕</button>
-    </div>`;
-  });
-  list.innerHTML = html; countEl.textContent = selected.size; updateTotals();
-}
-function toggleSelect(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderSelect(); }
-function changeQty(i, d){ if(!selected.has(i)) return; let v = Number(selected.get(i)) + d; if(products[i].unit==='kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; } else { if(v<1)v=1; v=Math.round(v); } selected.set(i,v); renderSelect(); if(document.getElementById('appModal')) { renderProductSelector(); } }
-function setQty(i, raw){ if(!selected.has(i)) return; let v = Number(raw); if(isNaN(v))v=1; if(products[i].unit==='kg'){ if(v<0.1)v=0.1; v=Math.round(v*100)/100; } else { if(v<1)v=1; v=Math.round(v); } selected.set(i,v); renderSelect(); if(document.getElementById('appModal')) { renderProductSelector(); } }
-function selectAll(on){ if(on) products.forEach((_,i) => selected.set(i,1)); else selected.clear(); renderSelect(); }
-function updateTotals(){ let t=0, c=0; selected.forEach((q,i) => { if(products[i]){ t += products[i].price*q; c++; } }); document.getElementById('totalSelect').textContent = fmtRial(t); document.getElementById('countSelected').textContent = c; }
+// --- بخش هفتم: ابزارها و مودال ---
+function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
+function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
 
-function showProductSelector(){
-  openModal(`<h3 class="modal-title">انتخاب محصولات</h3><div style="display: flex; gap: 8px; margin: 0 0 10px 0;"><div class="search-box" style="margin: 0; flex: 1; padding: 0 10px;"><span>🔍</span><input id="searchInModal" placeholder="جستجو..." oninput="renderProductSelector()"></div><button class="btn btn-secondary" style="margin: 0; width: auto; padding: 0 15px; font-size: 13px;" onclick="closeModal()">بستن</button></div><div id="selectorList" style="flex: 1; overflow-y: auto; min-height: 200px; max-height: 50vh;"></div>`);
-  setTimeout(() => { renderProductSelector(); }, 100);
-}
-function renderProductSelector(){
-  const q = document.getElementById('searchInModal').value.trim().toLowerCase(), listEl = document.getElementById('selectorList');
-  const filtered = products.map((p,i) => ({p,i})).filter(x => x.p.name.toLowerCase().includes(q));
-  if(!filtered.length) { listEl.innerHTML = '<div style="text-align:center; padding:20px;">محصولی یافت نشد</div>'; return; }
-  listEl.innerHTML = filtered.map(({p, i}) => {
-    const isSelected = selected.has(i), qty = selected.get(i) || 1;
-    return `<div class="product ${isSelected ? 'selected' : ''}" style="margin: 0 0 8px 0;"><div class="check" onclick="toggleSelectorItem(${i})">${isSelected ? '✓' : ''}</div><div class="info" onclick="toggleSelectorItem(${i})"><div class="name">${escapeHtml(p.name)}</div><div class="price">${fmtRial(p.price)} ریال</div></div>${isSelected ? `<div class="qty-control"><button class="qty-btn" onclick="changeQty(${i}, -1)">−</button><input class="qty-input" type="number" value="${qty}" onchange="setQty(${i}, this.value)"><button class="qty-btn" onclick="changeQty(${i}, 1)">+</button></div>` : ''}</div>`;
-  }).join('');
-}
-function toggleSelectorItem(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderProductSelector(); renderSelect(); }
-
-function showReceipt(){
-  if(!selected.size){ toast('محصولی انتخاب نشده'); return; }
-  let total = 0, rows = [], items = [];
-  selected.forEach((qty,i) => {
-    const p = products[i]; const line = p.price*qty; total += line;
-    items.push({name: p.name, qty: qty, unit: p.unit, price: p.price, line: line});
-    rows.push(`<tr><td>${escapeHtml(p.name)}</td><td>${fmtQty(p.unit,qty)}</td><td>${unitLabel(p.unit)}</td><td>${fmtRial(line)}</td></tr>`);
-  });
-  const receiptHtml = `<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p>
-    <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
-    <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>`;
-  
-  window._currentReceipt = { date: nowFa(), total: total, items: items };
-
-  openModal(receiptHtml + `
-    <div class="receipt-actions">
-      <button class="receipt-close" onclick="closeModal()">بستن</button>
-      <button class="receipt-print" onclick="saveReceiptToHistory()">📥 ثبت رسید</button>
-      <button class="receipt-print" onclick="downloadPdf()">💾 ذخیره PDF</button>
-      <button class="receipt-print" onclick="sharePdf()">🔗 اشتراک PDF</button>
-    </div>`);
-}
-
-function saveReceiptToHistory() {
-  if(!window._currentReceipt) return;
-  const rec = window._currentReceipt;
-  rec.id = (history.length + 1).toString();
-  history.unshift(rec);
-  saveHistory();
-  closeModal();
-  toast('✅ رسید در سابقه ثبت شد');
-  selected.clear();
-  renderSelect();
-  switchPage('history');
-}
-
+// --- بخش هشتم: ارسال و دریافت لیست (QR, JSON) ---
 function showExportOptions(){
   openModal(`<h3 class="modal-title">📤 ارسال لیست</h3>
     <button class="btn btn-primary" onclick="closeModal(); exportQr()">▦ ساخت QR Code</button>
@@ -603,45 +645,7 @@ function importFile(e){
   reader.readAsText(file); e.target.value = '';
 }
 
-async function generatePdf() {
-    const element = document.querySelector('.modal-card');
-    const opt = { margin: 0.5, filename: 'receipt.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-    const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('datauristring');
-    return pdfBase64;
-}
-async function downloadPdf() {
-    try {
-        const pdfBase64 = await generatePdf();
-        if (window.CSharpBridge && window.CSharpBridge.SavePdf) {
-            const base64Data = pdfBase64.split(',')[1];
-            window.CSharpBridge.SavePdf(base64Data);
-            toast('✅ PDF در حافظه ذخیره شد');
-        } else {
-            const link = document.createElement('a'); link.href = pdfBase64; link.download = 'receipt.pdf'; link.click();
-            toast('✅ PDF دانلود شد');
-        }
-    } catch(e) { toast('خطا در ساخت PDF'); }
-}
-async function sharePdf() {
-    try {
-        const pdfBase64 = await generatePdf();
-        if (window.CSharpBridge && window.CSharpBridge.SharePdf) {
-            const base64Data = pdfBase64.split(',')[1];
-            window.CSharpBridge.SharePdf(base64Data);
-            toast('✅ اشتراک‌گذاری باز شد');
-        } else { toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود'); }
-    } catch(e) { toast('خطا در ساخت PDF'); }
-}
-function downloadPdfReport() {
-    const element = document.querySelector('#pageReport .card');
-    const opt = { margin: 0.5, filename: 'report-' + new Date().toISOString().slice(0,10) + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-    html2pdf().set(opt).from(element).save();
-    toast('✅ گزارش ذخیره شد');
-}
-
-function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
-function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
-
+// --- بخش نهم: راه اندازی اولیه ---
 function init(){ updateTimes(); renderEdit(); renderSelect(); switchPage('edit'); }
 if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScreen').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); init(); }
 </script>
