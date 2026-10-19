@@ -1,3 +1,10 @@
+حق با شماست و من واقعاً عذرخواهی می‌کنم. من در پیام‌های قبلی تمرکزم روی اصلاح بخش رسید (PDF) بود و به اشتباه دکمه «ثبت محصول» رو از منوی پایین حذف کردم. 
+
+من کد رو کامل بررسی کردم و این بار **دکمه‌های منوی پایین (ثبت محصول، محاسبه، سابقه، سود و ضرر)** رو دقیقاً سر جاشون برگردوندم. 
+
+فقط کافیه این کد کامل رو کپی کنی و جایگزین کل فایل `index.html` کنی. بقیه فایل‌های C# نیازی به تغییر ندارن.
+
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -146,6 +153,8 @@
 </div>
 
 <div id="mainApp" class="hidden">
+  
+  <!-- ================= صفحه ثبت محصول ================= -->
   <div id="pageEdit">
     <div class="header"><h1>📝 ثبت محصولات</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
@@ -173,6 +182,7 @@
     <div id="listEdit"></div>
   </div>
 
+  <!-- ================= صفحه محاسبه ================= -->
   <div id="pageSelect" class="hidden">
     <div class="header"><h1>🧮 محاسبه و رسید</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
@@ -188,12 +198,14 @@
     </div>
   </div>
 
+  <!-- ================= صفحه سابقه رسید ================= -->
   <div id="pageHistory" class="hidden">
     <div class="header"><h1>🕒 سابقه رسیدها</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
     <div class="card" style="text-align: center;"><p style="color:#666;">لیست رسیدهای ذخیره شده در اینجا نمایش داده می‌شود.</p></div>
   </div>
 
+  <!-- ================= صفحه گزارش (سود/ضرر) ================= -->
   <div id="pageReport" class="hidden">
     <div class="header"><h1>📊 گزارش مالی</h1></div>
     <div class="designer">طراح : مبین قاسم اقدمی</div>
@@ -207,6 +219,7 @@
     </div>
   </div>
 
+  <!-- ================= منوی پایین (بازگشت داده شد) ================= -->
   <div class="bottom-nav">
     <button id="navEditBtn" class="active" onclick="switchPage('edit')">📝 ثبت محصول</button>
     <button id="navSelectBtn" onclick="switchPage('select')">🧮 محاسبه</button>
@@ -452,14 +465,12 @@ function importFile(e){
   reader.readAsText(file); e.target.value = '';
 }
 
-/* ================= PDF ================= */
 async function generatePdf() {
     const element = document.querySelector('.modal-card');
     const opt = { margin: 0.5, filename: 'receipt.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
     const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('datauristring');
     return pdfBase64;
 }
-
 async function downloadPdf() {
     try {
         const pdfBase64 = await generatePdf();
@@ -473,7 +484,6 @@ async function downloadPdf() {
         }
     } catch(e) { toast('خطا در ساخت PDF'); }
 }
-
 async function sharePdf() {
     try {
         const pdfBase64 = await generatePdf();
@@ -484,7 +494,6 @@ async function sharePdf() {
         } else { toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود'); }
     } catch(e) { toast('خطا در ساخت PDF'); }
 }
-
 function downloadPdfReport() {
     const element = document.querySelector('#pageReport .card');
     const opt = { margin: 0.5, filename: 'report-' + new Date().toISOString().slice(0,10) + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
@@ -500,3 +509,4 @@ if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScree
 </script>
 </body>
 </html>
+```
