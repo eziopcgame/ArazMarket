@@ -1,3 +1,17 @@
+بسیار خب، نگران نباشید. من همه‌چیز را کامل و قدم‌به‌قدم برایتان می‌نویسم. شما فقط کافیست فایل‌ها را جایگزین کنید.
+
+ما الان باید ۳ کار را انجام دهیم:
+1.  **کد HTML:** کاری کنیم که وقتی عکس می‌گیرد، فقط **جدول رسید** در عکس بیفتد (نه دکمه‌ها و نه پس‌زمینه).
+2.  **سابقه رسیدها:** کاری کنیم که وقتی روی «اشتراک‌گذاری» می‌زنید، بتواند عکس رسید قدیمی را هم بفرستد.
+3.  **کدهای C#:** که قبلاً فرستادم، برای اینکه پوشه ساخته شود و دوربین کار کند.
+
+---
+
+### قدم ۱: فایل `index.html` (اصلاح عکس‌برداری و اشتراک سابقه)
+
+فقط کد زیر را کپی کنید و جایگزین کل فایل `index.html` کنید. من بخش‌های عکس‌برداری و سابقه را در آن اصلاح کردم:
+
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -18,19 +32,11 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
-    margin: 0; 
-    font-family: -apple-system, "Vazirmatn", Tahoma, sans-serif;
-    background-color: var(--bg-white); 
-    color: var(--text-black);
-    height: 100%;
-    overflow-x: hidden;
-    overscroll-behavior-y: none; /* جلوگیری از کش شدن صفحه */
+    margin: 0; font-family: -apple-system, "Vazirmatn", Tahoma, sans-serif;
+    background-color: var(--bg-white); color: var(--text-black);
+    height: 100%; overflow-x: hidden; overscroll-behavior-y: none;
   }
-  body {
-    min-height: 100vh; 
-    padding: 0 0 90px 0; 
-    position: relative;
-  }
+  body { min-height: 100vh; padding: 0 0 90px 0; position: relative; }
   #mainApp { min-height: 100%; display: flex; flex-direction: column; }
   .hidden { display: none !important; }
 
@@ -41,17 +47,9 @@
   }
   #lockScreen .lock-icon { font-size: 62px; margin-bottom: 14px; color: var(--purple-main); }
   #lockScreen h2 { margin: 0 0 22px; font-size: 20px; color: var(--text-black); }
-  #lockScreen input {
-    width: 100%; max-width: 280px; padding: 15px 18px; border: 2px solid var(--purple-light); border-radius: 14px;
-    font-size: 16px; text-align: center; font-family: inherit; outline: none; letter-spacing: 3px;
-    background: var(--bg-white); color: var(--text-black);
-  }
+  #lockScreen input { width: 100%; max-width: 280px; padding: 15px 18px; border: 2px solid var(--purple-light); border-radius: 14px; font-size: 16px; text-align: center; font-family: inherit; outline: none; letter-spacing: 3px; background: var(--bg-white); color: var(--text-black); }
   #lockScreen input:focus { border-color: var(--purple-main); }
-  #lockScreen button {
-    margin-top: 14px; padding: 14px 50px; border: none; border-radius: 14px;
-    background: var(--purple-main); color: #fff; font-size: 16px; font-weight: 800;
-    font-family: inherit; cursor: pointer;
-  }
+  #lockScreen button { margin-top: 14px; padding: 14px 50px; border: none; border-radius: 14px; background: var(--purple-main); color: #fff; font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; }
   #lockScreen .err { color: red; margin-top: 14px; font-size: 13px; height: 18px; }
 
   .header { padding: 20px 20px 6px; text-align: center; }
@@ -59,16 +57,9 @@
   .designer { text-align: center; color: #888; font-size: 9px; margin: 0 0 10px; }
 
   .top-actions { display: flex; gap: 10px; margin: 0 14px 14px; }
-  .top-actions button {
-    flex: 1; padding: 12px; border-radius: 14px; border: 1.5px solid var(--purple-main);
-    background: var(--purple-light); color: var(--text-black); font-size: 13px; font-weight: 700;
-    font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
+  .top-actions button { flex: 1; padding: 12px; border-radius: 14px; border: 1.5px solid var(--purple-main); background: var(--purple-light); color: var(--text-black); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-  .update-bar {
-    margin: 0 14px 14px; background: var(--purple-light); border-radius: 14px; padding: 10px 16px; display: flex; align-items: center; justify-content: center;
-    gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-black); border: 1.5px solid var(--purple-main);
-  }
+  .update-bar { margin: 0 14px 14px; background: var(--purple-light); border-radius: 14px; padding: 10px 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-black); border: 1.5px solid var(--purple-main); }
   .update-bar.clickable { cursor: pointer; }
 
   .card { background: var(--bg-white); margin: 0 14px 14px; border-radius: 20px; padding: 16px; border: 2px solid var(--purple-main); }
@@ -113,15 +104,8 @@
   .total-card { background: var(--purple-light); margin: 0 14px 10px; border-radius: 18px; padding: 14px 16px; display: flex; justify-content: space-between; border: 1.5px solid var(--purple-main); color: var(--text-black); }
   .total-card .val { font-size: 18px; font-weight: 800; }
 
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-white);
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 6px; border-top: 1.5px solid var(--purple-main);
-    z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-  }
-  .bottom-nav button {
-    flex: 1; border: none; padding: 10px 4px; border-radius: 14px; font-size: 11px; font-weight: 700; font-family: inherit; color: var(--text-black);
-    display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--purple-light); border: 1.5px solid transparent;
-  }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-white); padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 6px; border-top: 1.5px solid var(--purple-main); z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+  .bottom-nav button { flex: 1; border: none; padding: 10px 4px; border-radius: 14px; font-size: 11px; font-weight: 700; font-family: inherit; color: var(--text-black); display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--purple-light); border: 1.5px solid transparent; }
   .bottom-nav button.active { background: var(--purple-main); color: #fff; }
 
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
@@ -154,6 +138,10 @@
   .chart-circle-fill { fill: none; stroke: var(--purple-main); stroke-width: 20; stroke-dasharray: 314 314; stroke-dashoffset: 314; transition: stroke-dashoffset 1s ease-out; }
   .chart-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -10%); text-align: center; font-weight: 800; color: var(--text-black); }
   .chart-text .lbl { font-size: 12px; color: #666; font-weight: normal; display: block; margin-top: 4px; }
+
+  /* کلاس اختصاصی برای عکس‌برداری (دکمه‌ها را مخفی می‌کند) */
+  .capture-mode .receipt-actions { display: none !important; }
+  .capture-mode .modal-card { border: none !important; padding: 0 !important; }
 </style>
 </head>
 <body>
@@ -251,7 +239,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// --- بخش اول: متغیرها و توابع پایه ---
 let products = JSON.parse(localStorage.getItem('products') || '[]');
 let history = JSON.parse(localStorage.getItem('history') || '[]');
 let lastUpdate = localStorage.getItem('lastUpdate') || '';
@@ -297,7 +284,6 @@ function switchPage(page){
   else if(page === 'report') renderReport();
 }
 
-// --- بخش دوم: ثبت محصولات و لیست ---
 function submitProduct(){
   const nameEl = document.getElementById('name'), priceEl = document.getElementById('price'), purchaseEl = document.getElementById('purchasePrice');
   const name = nameEl.value.trim(), price = priceEl.value.trim(), purchase = purchaseEl.value.trim();
@@ -341,7 +327,6 @@ function renderEdit(){
     </div>`).join('');
 }
 
-// --- بخش سوم: محاسبه و انتخاب محصولات ---
 function renderSelect(){
   const list = document.getElementById('listSelect'), countEl = document.getElementById('countSelect');
   if(selected.size === 0) {
@@ -382,7 +367,7 @@ function renderProductSelector(){
 }
 function toggleSelectorItem(i){ if(selected.has(i)) selected.delete(i); else selected.set(i, 1); renderProductSelector(); renderSelect(); }
 
-// --- بخش چهارم: رسید (ذخیره و اشتراک عکس) ---
+/* ================= رسید (عکس و اشتراک) ================= */
 function showReceipt(){
   if(!selected.size){ toast('محصولی انتخاب نشده'); return; }
   let total = 0, rows = [], items = [];
@@ -391,13 +376,12 @@ function showReceipt(){
     items.push({name: p.name, qty: qty, unit: p.unit, price: p.price, line: line});
     rows.push(`<tr><td>${escapeHtml(p.name)}</td><td>${fmtQty(p.unit,qty)}</td><td>${unitLabel(p.unit)}</td><td>${fmtRial(line)}</td></tr>`);
   });
-  const receiptHtml = `<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p>
-    <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
-    <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>`;
   
   window._currentReceipt = { date: nowFa(), total: total, items: items };
 
-  openModal(receiptHtml + `
+  openModal(`<h3 class="modal-title">🧾 رسید فروش</h3><p class="modal-sub">تاریخ: ${nowFa()}</p>
+    <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+    <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(total)} ریال</span></div>
     <div class="receipt-actions">
       <button class="receipt-close" onclick="closeModal()">بستن</button>
       <button class="receipt-print" onclick="saveReceiptToHistory()">📥 ثبت رسید</button>
@@ -406,34 +390,40 @@ function showReceipt(){
     </div>`);
 }
 
+// گرفتن عکس بدون دکمه‌ها با استفاده از کلاس capture-mode
+async function captureModalImage() {
+    const modalCard = document.querySelector('.modal-card');
+    modalCard.classList.add('capture-mode');
+    await new Promise(r => setTimeout(r, 100)); // صبر برای اعمال کلاس
+
+    try {
+        const canvas = await html2canvas(modalCard, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        modalCard.classList.remove('capture-mode');
+        return canvas.toDataURL('image/jpeg', 0.9);
+    } catch(e) {
+        modalCard.classList.remove('capture-mode');
+        return null;
+    }
+}
+
 async function saveReceiptAsImage() {
-  const element = document.querySelector('.modal-card');
-  try {
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const base64Image = canvas.toDataURL('image/jpeg', 0.9);
-    
+    const base64Image = await captureModalImage();
+    if(!base64Image) { toast('❌ خطا در ساخت عکس'); return; }
+
     if (window.CSharpBridge && window.CSharpBridge.SaveImage) {
       const base64Data = base64Image.split(',')[1];
       window.CSharpBridge.SaveImage(base64Data);
       toast('✅ عکس در حافظه ذخیره شد');
     } else {
-      const link = document.createElement('a');
-      link.href = base64Image;
-      link.download = 'receipt.jpg';
-      link.click();
+      const link = document.createElement('a'); link.href = base64Image; link.download = 'receipt.jpg'; link.click();
       toast('✅ عکس دانلود شد');
     }
-  } catch(e) {
-    toast('❌ خطا در ساخت عکس');
-  }
 }
 
 async function shareReceiptAsImage() {
-  const element = document.querySelector('.modal-card');
-  try {
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const base64Image = canvas.toDataURL('image/jpeg', 0.9);
-    
+    const base64Image = await captureModalImage();
+    if(!base64Image) { toast('❌ خطا در ساخت عکس'); return; }
+
     if (window.CSharpBridge && window.CSharpBridge.ShareImage) {
       const base64Data = base64Image.split(',')[1];
       window.CSharpBridge.ShareImage(base64Data);
@@ -441,9 +431,6 @@ async function shareReceiptAsImage() {
     } else {
       toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
     }
-  } catch(e) {
-    toast('❌ خطا در ساخت عکس');
-  }
 }
 
 function saveReceiptToHistory() {
@@ -459,7 +446,7 @@ function saveReceiptToHistory() {
   switchPage('history');
 }
 
-// --- بخش پنجم: سابقه رسیدها ---
+/* ================= سابقه رسیدها ================= */
 function renderHistory(){
   const list = document.getElementById('historyList');
   if(!history.length){ list.innerHTML = '<div class="card" style="text-align:center; color:#666;">هیچ رسیدی ثبت نشده است.</div>'; return; }
@@ -484,13 +471,14 @@ function showHistoryDetails(id) {
   openModal(`<h3 class="modal-title">🧾 رسید #${h.id}</h3><p class="modal-sub">تاریخ: ${h.date}</p>
     <div class="receipt-table-wrapper"><table class="receipt-table"><thead><tr><th>کالا</th><th>تعداد</th><th>واحد</th><th>مبلغ (ریال)</th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="receipt-total"><span>جمع کل:</span><span>${fmtRial(h.total)} ریال</span></div>
-    <div class="receipt-actions" style="justify-content:center;">
+    <div class="receipt-actions">
       <button class="receipt-close" onclick="closeModal()">بستن</button>
-      <button class="receipt-print" onclick="shareHistoryReceipt('${h.id}')">🔗 اشتراک‌گذاری</button>
+      <button class="receipt-print" onclick="shareHistoryReceiptText('${h.id}')">🔗 اشتراک متن</button>
+      <button class="receipt-print" onclick="shareHistoryReceiptImage('${h.id}')">🖼️ اشتراک عکس</button>
     </div>`);
 }
 
-function shareHistoryReceipt(id) {
+function shareHistoryReceiptText(id) {
   const h = history.find(x => x.id === id);
   if(!h) return;
   let text = `رسید فروش #${h.id}\nتاریخ: ${h.date}\n\n`;
@@ -499,14 +487,24 @@ function shareHistoryReceipt(id) {
   });
   text += `\nجمع کل: ${fmtRial(h.total)} ریال`;
   
-  if (navigator.share) {
-    navigator.share({ title: 'رسید فروش', text: text }).catch(console.error);
+  if (navigator.share) navigator.share({ title: 'رسید فروش', text: text }).catch(console.error);
+  else toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
+}
+
+async function shareHistoryReceiptImage(id) {
+  const base64Image = await captureModalImage();
+  if(!base64Image) { toast('❌ خطا در ساخت عکس'); return; }
+
+  if (window.CSharpBridge && window.CSharpBridge.ShareImage) {
+    const base64Data = base64Image.split(',')[1];
+    window.CSharpBridge.ShareImage(base64Data);
+    toast('✅ اشتراک‌گذاری باز شد');
   } else {
     toast('اشتراک‌گذاری در این دستگاه پشتیبانی نمی‌شود');
   }
 }
 
-// --- بخش ششم: گزارش مالی ---
+/* ================= گزارش مالی ================= */
 function renderReport() {
   let totalSales = 0;
   let totalPurchase = 0;
@@ -551,11 +549,11 @@ function downloadPdfReport() {
     });
 }
 
-// --- بخش هفتم: ابزارها و مودال ---
+/* ================= ابزارها ================= */
 function openModal(html){ closeModal(); const m = document.createElement('div'); m.className='modal'; m.id='appModal'; m.onclick = e => {if(e.target===m) closeModal()}; const c = document.createElement('div'); c.className='modal-card'; c.innerHTML=html; m.appendChild(c); document.body.appendChild(m); }
 function closeModal(){ const m = document.getElementById('appModal'); if(m) m.remove(); }
 
-// --- بخش هشتم: ارسال و دریافت لیست (QR, JSON) ---
+/* ================= ارسال و دریافت ================= */
 function showExportOptions(){
   openModal(`<h3 class="modal-title">📤 ارسال لیست</h3>
     <button class="btn btn-primary" onclick="closeModal(); exportQr()">▦ ساخت QR Code</button>
@@ -645,9 +643,9 @@ function importFile(e){
   reader.readAsText(file); e.target.value = '';
 }
 
-// --- بخش نهم: راه اندازی اولیه ---
 function init(){ updateTimes(); renderEdit(); renderSelect(); switchPage('edit'); }
 if(sessionStorage.getItem('logged') === '1'){ document.getElementById('lockScreen').classList.add('hidden'); document.getElementById('mainApp').classList.remove('hidden'); init(); }
 </script>
 </body>
 </html>
+```
